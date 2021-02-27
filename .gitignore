@@ -4,4 +4,6 @@ venv
 .idea
 .vscode
 history
+data/*
+tmp/*
 
