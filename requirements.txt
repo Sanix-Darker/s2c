@@ -1,0 +1,8 @@
+numpy==1.15.2
+opencv-python==3.4.3.18
+scipy==1.1.0
+
+python-gnupg
+
+pyaudio
+
