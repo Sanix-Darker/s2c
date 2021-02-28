@@ -1,6 +1,7 @@
-from app.utils.__init__ import (
-    np, md5, time
-)
+from hashlib import md5
+import time
+import numpy as np
+
 
 
 # Standard loopback interface address (localhost)

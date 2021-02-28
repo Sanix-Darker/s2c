@@ -1,5 +1,5 @@
-import socket
-import time
+import socket, time
+
 from os import path as os_path
 from app.settings import *
 
@@ -12,28 +12,16 @@ from cv2 import (
 )
 from app.utils.cam import (
         pretty_print_frame,
-        import_keys,
-        ascii_it,
-        generate_pub_priv_keys
+        ascii_it
 )
-from app.utils.pgp import (
-        import_keys,
-        generate_pub_priv_keys,
-        encrypt,
-        decrypt
+from app.utils.aes import (
+        encrypt_aes,
+        decrypt_aes
 )
 
 
 
-def run(gpg, ser):
-
-    # We check if the key is present
-    # if not we generate a key pair
-    if not os_path.exists(key_path):
-        generate_pub_priv_keys(gpg, key_path, passphrase)
-
-    # We import keys pair from the file saved locally
-    ks = import_keys(gpg, key_path)
+def run(kripta_aes: object, session: object):
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         # Am the client
@@ -48,10 +36,15 @@ def run(gpg, ser):
                 try:
                     _, img = cam.read()
                     if _:
-                        encrypted_frame = ascii_it(flip(resize(img, (70, 25)), 1), gpg, ks)
-                        s.sendall(encrypted_frame.encode())
-
-                        time.sleep(0.3)
+                        s.sendall(
+                            encrypt_aes(
+                                kripta_aes,
+                                ascii_it(
+                                    flip(resize(img, (70, 25)),1)
+                                ),key
+                            )
+                        )
+                        time.sleep(0.1)
                 except KeyboardInterrupt as es:
                     cam.release()
                     break
@@ -65,10 +58,14 @@ def run(gpg, ser):
                 print('Connected by', addr)
                 while True:
                     try:
-                        received = conn.recv(3500).decode()
+                        received = conn.recv(3500)
                         if len(received) > 30:
-                            pretty_print_frame(decrypt(gpg, received, passphrase))
-                            # print(decrypt(gpg, received, passphrase))
+                            pretty_print_frame(
+                                decrypt_aes(
+                                    kripta_aes,
+                                    received.decode("utf-8"), key
+                                ).decode("utf-8")
+                            )
                     except KeyboardInterrupt as es:
                         break
 

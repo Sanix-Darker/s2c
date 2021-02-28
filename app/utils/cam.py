@@ -1,19 +1,19 @@
-from app.utils import *
+from bisect import bisect
 from app.settings import *
 
 
 
 def pretty_print_frame(string: str):
     """
+    Just a simple a method to pretty print a ascii
+    frame with more infos
 
     """
 
     # We make sure to have something in the string
     # before printing it
     if len(string) > 3:
-
         system('cls' if os_name == 'nt' else 'clear')
-
         print("-" * 70)
         print("[+] s2c v{} | Client : {}".format(version, client))
         print("-" * 70)
@@ -21,7 +21,6 @@ def pretty_print_frame(string: str):
         print("-" * 70)
         print(sha256(string.encode()).hexdigest() + " |" + str(len(string)))
         print("-" * 70)
-
 
 
 def generate_frame(fps_str, gray_image, characters, indices, gpg, ks):
@@ -52,8 +51,12 @@ def generate_frame(fps_str, gray_image, characters, indices, gpg, ks):
 
 
 def get_fps(frames):
-    elapsed = time.time() - start
-    fps = int(frames / elapsed)
+    """
+    Jut to get the frame per second count
+
+    """
+    fps = frames // (time.time() - start)
+
     return '  {} FPS'.format(fps)
 
 

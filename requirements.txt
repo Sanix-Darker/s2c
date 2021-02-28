@@ -6,3 +6,5 @@ python-gnupg
 
 pyaudio
 
+pycryptodome==3.9.0
+
