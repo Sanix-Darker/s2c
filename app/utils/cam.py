@@ -68,8 +68,8 @@ def generate_frame(fps_str, gray_image, characters, indices, gpg, ks):
 
     pretty_print_frame(string)
 
-    return string
-    # return encrypt(gpg, string, recipients=ks)
+    # return string
+    return encrypt(gpg, string, recipients=ks)
 
 
 def get_fps(frames):
@@ -132,7 +132,7 @@ def start_cam(gpg, ser):
                         encrypted_frame = ascii_it(flip(resize(img, (70, 25)), 1), gpg, ks)
                         s.sendall(encrypted_frame.encode())
 
-                        time.sleep(0.05)
+                        time.sleep(0.3)
                 except KeyboardInterrupt as es:
                     cam.release()
                     break
@@ -146,9 +146,9 @@ def start_cam(gpg, ser):
                 print('Connected by', addr)
                 while True:
                     try:
-                        received = conn.recv(3000).decode()
+                        received = conn.recv(3500).decode()
                         if len(received) > 30:
-                            pretty_print_frame(received)
+                            pretty_print_frame(decrypt(gpg, received, passphrase))
                             # print(decrypt(gpg, received, passphrase))
                     except KeyboardInterrupt as es:
                         break
