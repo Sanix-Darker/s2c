@@ -7,8 +7,10 @@
 
 
 
-
-def generate_pub_priv_keys(gpg: object, file_name: str, passphrase: str, share_file_name: str="./data/share"):
+def generate_pub_priv_keys(gpg: object, \
+                            file_name: str, \
+                            passphrase: str, \
+                            share_file_name: str="./data/share"):
     """
     This method will use PGP through GnuPG to generate
     a public and private keys that will be use for encrypt
@@ -19,8 +21,6 @@ def generate_pub_priv_keys(gpg: object, file_name: str, passphrase: str, share_f
         - file_name: the file name where keys will be stored
         - passphrase: The passphrase for encrypt/decrypt
     """
-
-    # start = time.time()
 
     # Generate key
     key = gpg.gen_key(gpg.gen_key_input(
@@ -42,8 +42,6 @@ def generate_pub_priv_keys(gpg: object, file_name: str, passphrase: str, share_f
     # We save also the file that should be share for encryption from the peer
     with open(share_file_name, "w") as f:
         f.write(gpg.export_keys(key.fingerprint))
-
-    # print("> generated keys time : ", (time.time() - start))
 
 
 def import_keys(gpg: object, file_name: str) -> list:
@@ -73,8 +71,6 @@ def encrypt(gpg: object, input_str: str, recipients: list) -> str:
         - recipients: The list of recipients
     """
 
-    # start = time.time()
-
     if len(input_str) > 2:
         # encrypt file
         enc = gpg.encrypt(input_str, recipients, always_trust=True)
@@ -82,13 +78,11 @@ def encrypt(gpg: object, input_str: str, recipients: list) -> str:
         # We print an error if there is a problem
         if not enc.ok:
             print(enc.status)
-            return input_str
-
-        # print("> encrypt time : ", (time.time() - start))
+            return ""
 
         return str(enc)
 
-    return input_str
+    return ""
 
 
 def decrypt(gpg: object, input_str: str, passphrase: str) -> str:
@@ -100,8 +94,6 @@ def decrypt(gpg: object, input_str: str, passphrase: str) -> str:
         - input_str: The encrypted input ASCII text
         - passphrase: THe passphrase to decrypt
     """
-    # start = time.time()
-
     if len(input_str) > 2:
         # decrypt file
         dec = gpg.decrypt(input_str, passphrase=passphrase)
@@ -109,13 +101,11 @@ def decrypt(gpg: object, input_str: str, passphrase: str) -> str:
         # We print an error if there is a problem
         if not dec.ok:
             print(dec.status)
-            return input_str
-
-        # print("> decrypt time : ", (time.time() - start))
+            return ""
 
         return str(dec)
 
-    return input_str
+    return ""
 
 
 # How to test that locallyl

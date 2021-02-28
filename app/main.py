@@ -1,12 +1,15 @@
-from app.utils.cam import start_cam
 import gnupg
 import argparse
+
+from app.core import (
+    run
+)
+
 
 
 if __name__ == "__main__":
     # The gnupg for encryption
     gpg = gnupg.GPG()
-
 
     # Initialize the arguments
     prs = argparse.ArgumentParser()
@@ -16,6 +19,5 @@ if __name__ == "__main__":
 
     prs = prs.parse_args()
 
-    start_cam(gpg, prs.server)
-
+    run(gpg, prs.server)
 

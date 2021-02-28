@@ -1,47 +1,26 @@
-from cv2 import resize, flip, cvtColor, COLOR_BGR2GRAY, VideoCapture
-from bisect import bisect
-import time
-from hashlib import sha256
-from os import system, name as os_name, path
-from app.settings import (
-    version,
-    characters,
-    global_brightnesses,
-    client,
-    start,
-    frames,
-    indices,
-    key_path,
-    passphrase
-)
-from app.utils.pgp import (
-    import_keys,
-    generate_pub_priv_keys,
-    encrypt,
-    decrypt
-)
+from app.utils import *
+from app.settings import *
 
-import socket
-
-
-
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
 
 def pretty_print_frame(string: str):
     """
 
     """
-    system('cls' if os_name == 'nt' else 'clear')
 
-    print("-" * 70)
-    print("[+] s2c v{} | Client : {}".format(version, client))
-    print("-" * 70)
-    print(string)
-    print("-" * 70)
-    print(sha256(string.encode()).hexdigest() + " |" + str(len(string)))
-    print("-" * 70)
+    # We make sure to have something in the string
+    # before printing it
+    if len(string) > 3:
+
+        system('cls' if os_name == 'nt' else 'clear')
+
+        print("-" * 70)
+        print("[+] s2c v{} | Client : {}".format(version, client))
+        print("-" * 70)
+        print(string)
+        print("-" * 70)
+        print(sha256(string.encode()).hexdigest() + " |" + str(len(string)))
+        print("-" * 70)
 
 
 
@@ -105,53 +84,6 @@ def ascii_it(image, gpg, ks):
 
     return generate_frame(fps_str, gray_image, characters, indices, gpg, ks)
 
-
-def start_cam(gpg, ser):
-
-    # We check if the key is present
-    # if not we generate a key pair
-    if not path.exists(key_path):
-        generate_pub_priv_keys(gpg, key_path, passphrase)
-
-    # We import keys pair from the file saved locally
-    ks = import_keys(gpg, key_path)
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # Am the client
-        if ser == "-":
-            # The Cpature for cam
-            cam = VideoCapture(0)
-            cam.set(3, 25)
-            cam.set(4, 70)
-
-            s.connect((HOST, PORT))
-            while True:
-                try:
-                    _, img = cam.read()
-                    if _:
-                        encrypted_frame = ascii_it(flip(resize(img, (70, 25)), 1), gpg, ks)
-                        s.sendall(encrypted_frame.encode())
-
-                        time.sleep(0.3)
-                except KeyboardInterrupt as es:
-                    cam.release()
-                    break
-        else:
-            # am the server
-            s.bind((HOST, PORT))
-            s.listen()
-
-            conn, addr = s.accept()
-            with conn:
-                print('Connected by', addr)
-                while True:
-                    try:
-                        received = conn.recv(3500).decode()
-                        if len(received) > 30:
-                            pretty_print_frame(decrypt(gpg, received, passphrase))
-                            # print(decrypt(gpg, received, passphrase))
-                    except KeyboardInterrupt as es:
-                        break
 
 ###################################################################################################
 
