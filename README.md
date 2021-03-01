@@ -1,12 +1,11 @@
 # S2C
 
-A secret video chat in terminal using strongd PGP encryption.
+A secret video chat in terminal using strongd PGP encryptions and AES encryptions.
 
-## As an user
+## How to use
 
-### How to use
 
-## Dev
+## From source
 
 ### How to install
 

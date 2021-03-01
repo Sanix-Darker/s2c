@@ -1,4 +1,0 @@
-Let's implement the asynchronos chat with this tutorial
-
-https://www.mendrugory.com/post/python3-7-asyncio-chat/
-

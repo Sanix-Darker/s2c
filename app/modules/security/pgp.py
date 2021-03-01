@@ -4,6 +4,7 @@
 
 # you may need to also:
 # export GPG_TTY=$(tty)
+from os import path as os_path, makedirs
 
 
 
@@ -21,6 +22,9 @@ def generate_pub_priv_keys(gpg: object, \
         - file_name: the file name where keys will be stored
         - passphrase: The passphrase for encrypt/decrypt
     """
+    # if data directory doesn't exist, let's create it
+    if not os_path.exists("./data"):
+        makedirs("data")
 
     # Generate key
     key = gpg.gen_key(gpg.gen_key_input(
