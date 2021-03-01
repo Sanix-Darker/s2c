@@ -3,6 +3,7 @@ from uuid import uuid4
 from random import randint
 
 
+
 def generate_key(prs: object):
     """
     This metho will just generate a secret key for
@@ -13,7 +14,7 @@ def generate_key(prs: object):
 
     """
     if prs.key is None:
-        key = str(randint(0, 99999) + str(uuid4()))
+        key = str(randint(0, 99999)) + str(uuid4())
         return "s2c_" + md5(key.encode()).hexdigest()[:4]
     else:
         return prs.key
@@ -26,6 +27,8 @@ def parse(prs: object):
     """
     session = {
         "key":  generate_key(prs),
+        "host": prs.host,
+        "port": prs.port,
         "id": "",
         "status": ""
     }

@@ -8,7 +8,7 @@ import numpy as np
 HOST = '127.0.0.1'
 
 # Port to listen on (non-privileged ports are > 1023)
-PORT = 65432
+PORT = 2938
 
 # Just the version
 version = "0.0.1"

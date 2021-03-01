@@ -1,6 +1,16 @@
 from bisect import bisect
 from app.settings import *
 
+from cv2 import (
+        resize,
+        flip,
+        cvtColor,
+        COLOR_BGR2GRAY,
+        VideoCapture
+)
+from os import name as os_name, system
+from hashlib import sha256
+
 
 
 def pretty_print_frame(string: str):
@@ -13,9 +23,10 @@ def pretty_print_frame(string: str):
     # We make sure to have something in the string
     # before printing it
     if len(string) > 3:
+        size = str(len(string.split("\n")[0])) + "x" + str(string.count("\n"))
         system('cls' if os_name == 'nt' else 'clear')
         print("-" * 70)
-        print("[+] s2c v{} | Client : {}".format(version, client))
+        print("[+] s2c v{} | size : {} | client : {}".format(version, size, client))
         print("-" * 70)
         print(string)
         print("-" * 70)
@@ -23,7 +34,7 @@ def pretty_print_frame(string: str):
         print("-" * 70)
 
 
-def generate_frame(fps_str, gray_image, characters, indices, gpg, ks):
+def generate_frame(fps_str, gray_image, characters, indices):
     """
     This method will print the ASCII frame and return the encrypted
     frame using PGP encryption
@@ -46,8 +57,7 @@ def generate_frame(fps_str, gray_image, characters, indices, gpg, ks):
 
     pretty_print_frame(string)
 
-    # return string
-    return encrypt(gpg, string, recipients=ks)
+    return string
 
 
 def get_fps(frames):
@@ -55,12 +65,12 @@ def get_fps(frames):
     Jut to get the frame per second count
 
     """
-    fps = frames // (time.time() - start)
+    fps = int(frames // (time.time() - start))
 
     return '  {} FPS'.format(fps)
 
 
-def ascii_it(image, gpg, ks):
+def ascii_it(image):
     """
     From an image to an ASCII representation with brightnesses
 
@@ -85,7 +95,7 @@ def ascii_it(image, gpg, ks):
     for c in range(gray_image.min(), gray_image.max() + 1):
         indices[c] = bisect(brightnesses, c)
 
-    return generate_frame(fps_str, gray_image, characters, indices, gpg, ks)
+    return generate_frame(fps_str, gray_image, characters, indices)
 
 
 ###################################################################################################
