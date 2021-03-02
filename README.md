@@ -14,5 +14,6 @@ A secret video chat in terminal using strongd PGP encryptions and AES encryption
 
 ## About
 
-- (Sanix-darker)[https://github,com/sanix-darker]
+- [d4rk3r](https://github,com/sanix-darker)
+
 
