@@ -81,15 +81,18 @@ class Client:
 
         while True:
             try:
-                received_msg = self.recv(4096).decode("utf-8")
+                received_msg = self.recv(2048).decode("utf-8")
                 print("received_msg: ", received_msg)
                 if len(received_msg) > 30:
                     received_msg = json.loads(received_msg)
 
-                    audio_bin =  json.loads(received_msg["a"])["r"].encode().decode('ascii')
-                    print("audio_bin : ", audio_bin)
-                   # pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"].decode("utf-8") )
-                    self.playing_stream.write(audio_bin)
+                    if "a" in received_msg:
+                        audio_bin =  json.loads(received_msg["a"])["r"].encode().decode('ascii')
+                        print("audio_bin : ", audio_bin)
+                        self.playing_stream.write(audio_bin)
+
+                    if "v" in received_msg:
+                        pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"].decode("utf-8") )
             except:
                 pass
 
@@ -99,13 +102,24 @@ class Client:
             try:
                 _, img = self.cam.read()
                 if _:
-                    # We get the audio stream (1024 in size)
-                    audio_data = self.recording_stream.read(512)
 
+                    # We send the frame
                     to_send = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
+                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1))
+                    })
+                    try:
+                        self.s.sendall(bytes(to_send,encoding="utf-8"))
+                    except ConnectionResetError as es:
+                        time.sleep(1)
+
+                    # We send the audio
+                    # We get the audio stream (1024 in size)
+                    audio_data = self.recording_stream.read(512)
+                    to_send = json.dumps({
+                        "i": self.client_id,
+                        "s": self.session_id,
                         "a": json.dumps({"r": base64.b64encode(audio_data).decode()})
                     })
                     try:

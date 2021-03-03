@@ -55,7 +55,7 @@ def generate_frame(client_id, session_id, fps_str, gray_image, characters, indic
         string += '\n'
     string = string[:-len(fps_str) - 1] + fps_str
 
-    pretty_print_frame(client_id, session_id, string)
+    # pretty_print_frame(client_id, session_id, string)
 
     return string
 

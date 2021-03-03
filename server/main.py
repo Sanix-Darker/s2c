@@ -72,18 +72,22 @@ class Server:
     def handle_client(self, c, addr):
         while True:
             try:
-                data = c.recv(4096)
-                print("-"*80)
-                print("data.decode('utf-8'): ", data.decode("utf-8"))
-                json_data = json.loads(data.decode())
+                try:
+                    data = c.recv(2048)
 
-                print("json_data: ", json_data)
+                    if len(data.decode("utf-8"))) > 30:
+                        json_data = json.loads(data.decode())
+                        print("-"*80)
 
-                # We check first the format
-                # i for the id, s for the session,
-                # v for the video string and a for the audio chunk
-                if all(k in json_data.keys() for k in ["i", "s", "v", "a"]):
-                    self.broadcast(c, json_data)
+                        print("json_data: ", json_data)
+
+                        # We check first the format
+                        # i for the id, s for the session,
+                        # v for the video string and a for the audio chunk
+                        if all(k in json_data.keys() for k in ["i", "s"]) and any(k in json_data.keys() for k in ["v", "a"]):
+                            self.broadcast(c, json_data)
+                except json.decoder.JSONDecodeError as es:
+                   pass
             except socket.error:
                 c.close()
 
