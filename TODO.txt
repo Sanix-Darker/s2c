@@ -1,0 +1,2 @@
+- Manage with rabbitMQ, sockets is too much unstabl for the audio parse/forward
+
