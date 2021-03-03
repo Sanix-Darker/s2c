@@ -97,7 +97,7 @@ class Client:
                         free = self.playing_stream.get_write_available() # How much space is left in the buffer?
                         if free > audio_chunk: # Is there a lot of space in the buffer?
                             tofill = free - audio_chunk
-                             self.playing_stream.write(silence * tofill) # Fill it with silence
+                            self.playing_stream.write(silence * tofill) # Fill it with silence
 
                     # if "v" in received_msg:
                     #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
