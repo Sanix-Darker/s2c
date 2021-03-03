@@ -74,7 +74,7 @@ class Server:
         while True:
             try:
                 try:
-                    data = c.recv(2048)
+                    data = c.recv(3072)
                     if len(data.decode("utf-8")) > 30:
                         json_data = json.loads(data.decode())
                         print("-"*80)

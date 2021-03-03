@@ -83,7 +83,7 @@ class Client:
 
         while True:
             try:
-                received_msg = self.s.recv(2048)
+                received_msg = self.s.recv(3072)
 
                 if len(received_msg.decode("utf-8")) > 30:
                     try:
