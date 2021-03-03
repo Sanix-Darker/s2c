@@ -87,6 +87,7 @@ class Client:
 
                 if len(received_msg.decode("utf-8")) > 30:
                     try:
+                        print("received_msg : ", received_msg)
                         received_msg = json.loads(received_msg.decode("utf-8"))
 
                         if "a" in received_msg:
@@ -103,7 +104,7 @@ class Client:
                         # if "v" in received_msg:
                         #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
                     except json.decoder.JSONDecodeError as es:
-                        pass
+                        get_trace()
             except Exception as es:
                 get_trace()
 
