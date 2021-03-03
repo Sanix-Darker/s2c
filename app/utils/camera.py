@@ -13,7 +13,7 @@ from hashlib import sha256
 
 
 
-def pretty_print_frame(string: str):
+def pretty_print_frame(client_id: str, session_id: str, string: str):
     """
     Just a simple a method to pretty print a ascii
     frame with more infos
@@ -23,18 +23,18 @@ def pretty_print_frame(string: str):
     # We make sure to have something in the string
     # before printing it
     if len(string) > 3:
-        size = str(len(string.split("\n")[0])) + "x" + str(string.count("\n"))
+        size = str(len(string.split("\n")[0])) + " x " + str(string.count("\n"))
         system('cls' if os_name == 'nt' else 'clear')
-        print("-" * 70)
-        print("[+] s2c v{} | size : {} | client : {}".format(version, size, client))
-        print("-" * 70)
+        print("-" * 50)
+        print("[+] s2c v{} | session_id : {} | size : {}".format(version, session_id, size))
+        print("-" * 50)
         print(string)
-        print("-" * 70)
-        print(sha256(string.encode()).hexdigest() + " |" + str(len(string)))
-        print("-" * 70)
+        print("-" * 50)
+        print("client_id : {} | raw : {}".format(client_id, str(len(string))))
+        print("-" * 50)
 
 
-def generate_frame(fps_str, gray_image, characters, indices):
+def generate_frame(client_id, session_id, fps_str, gray_image, characters, indices):
     """
     This method will print the ASCII frame and return the encrypted
     frame using PGP encryption
@@ -55,7 +55,7 @@ def generate_frame(fps_str, gray_image, characters, indices):
         string += '\n'
     string = string[:-len(fps_str) - 1] + fps_str
 
-    pretty_print_frame(string)
+    pretty_print_frame(client_id, session_id, string)
 
     return string
 
@@ -70,7 +70,7 @@ def get_fps(frames):
     return '  {} FPS'.format(fps)
 
 
-def ascii_it(image):
+def ascii_it(client_id, session_id, image):
     """
     From an image to an ASCII representation with brightnesses
 
@@ -95,7 +95,7 @@ def ascii_it(image):
     for c in range(gray_image.min(), gray_image.max() + 1):
         indices[c] = bisect(brightnesses, c)
 
-    return generate_frame(fps_str, gray_image, characters, indices)
+    return generate_frame(client_id, session_id, fps_str, gray_image, characters, indices)
 
 
 ###################################################################################################

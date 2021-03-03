@@ -73,7 +73,7 @@ class Client:
                 if len(received_msg) > 30:
                     received_msg = json.loads(received_msg)
 
-                    pretty_print_frame( received_msg["v"].decode("utf-8") )
+                    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"].decode("utf-8") )
                     self.playing_stream.write( received_msg["a"]["r"].encode().decode('ascii') )
             except:
                 pass
@@ -90,7 +90,7 @@ class Client:
                     to_send = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_it(flip(resize(img, (self.size[0], self.size[1])),1)),
+                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
                         "a": json.dumps({"r": base64.b64encode(audio_data).decode()})
                     })
 
