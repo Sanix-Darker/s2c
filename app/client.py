@@ -95,8 +95,8 @@ class Client:
                         silence = chr(0)*audio_chunk*2
 
                         free = self.playing_stream.get_write_available() # How much space is left in the buffer?
-                        if free > CHUNK # Is there a lot of space in the buffer?
-                            tofill = free - CHUNK
+                        if free > audio_chunk: # Is there a lot of space in the buffer?
+                            tofill = free - audio_chunk
                              self.playing_stream.write(SILENCE * tofill) # Fill it with silence
 
                     # if "v" in received_msg:
