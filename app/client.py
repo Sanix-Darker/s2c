@@ -37,6 +37,8 @@ class Client:
 
         self.size = [35, 11]
 
+        self.tmp_seqs = {}
+
         while True:
             try:
                 self.s.connect((self.ip, self.port))
@@ -51,7 +53,7 @@ class Client:
         self.cam.set(2, self.size[1])
         self.cam.set(3, self.size[0])
 
-        chunk_size = 256
+        chunk_size = 1024
         audio_format = pyaudio.paInt16
         channels = 1
         rate = 20000
@@ -83,7 +85,7 @@ class Client:
 
         while True:
             try:
-                received_msg = self.s.recv(1024)
+                received_msg = self.s.recv(2048)
 
                 try:
                     print("received_msg : ", received_msg)
@@ -113,22 +115,16 @@ class Client:
                 _, img = self.cam.read()
                 if _:
                     # We get the audio stream (1024 in size)
-                    audio_data = self.recording_stream.read(256)
+                    audio_data = self.recording_stream.read(1024)
                     # We send the frame
                     frame = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1))
-                    })
-                    audio = json.dumps({
-                        "i": self.client_id,
-                        "s": self.session_id,
+                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
                         "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
                     })
-
                     try:
                         self.s.sendall(bytes(frame, encoding="utf-8"))
-                        self.s.sendall(bytes(audio, encoding="utf-8"))
                     except ConnectionResetError as es:
                         get_trace()
             except KeyboardInterrupt as es:
