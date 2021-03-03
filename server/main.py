@@ -62,14 +62,11 @@ class Server:
 
         # We loop over all clients in the session
         # To send them the flux
-        print(self.rooms[json_data["s"]])
         for elt in self.rooms[json_data["s"]]:
-            print("elt: ", elt)
             client = self.rooms[json_data["s"]][elt]["c"]
             if client != self.s and client != sock:
                 try:
-                    print("sending...")
-                    client.send(json_data)
+                    client.send(bytes(json_data, encoding="utf-8"))
                 except Exception as es:
                     get_trace()
 
