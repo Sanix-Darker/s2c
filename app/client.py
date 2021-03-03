@@ -33,7 +33,7 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [37, 11]
+        self.size = [35, 11]
 
         while True:
             try:
