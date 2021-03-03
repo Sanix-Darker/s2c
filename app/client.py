@@ -83,28 +83,27 @@ class Client:
 
         while True:
             try:
-                received_msg = self.s.recv(10240)
+                received_msg = self.s.recv(3072)
 
-                if len(received_msg.decode("utf-8")) > 30:
-                    try:
-                        print("received_msg : ", received_msg)
-                        received_msg = json.loads(received_msg.decode("utf-8"))
+                try:
+                    print("received_msg : ", received_msg)
+                    received_msg = json.loads(received_msg.decode("utf-8"))
 
-                        if "a" in received_msg:
-                            audio_chunk = base64.b64decode(received_msg["a"]["r"])
-                            self.playing_stream.write(audio_chunk)
-
-                            silence = chr(0)*len(audio_chunk)*2
-
-                            free = self.playing_stream.get_write_available() # How much space is left in the buffer?
-                            if free > len(audio_chunk): # Is there a lot of space in the buffer?
-                                tofill = free - len(audio_chunk)
-                                self.playing_stream.write(silence * tofill) # Fill it with silence
-
-                        # if "v" in received_msg:
-                        #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
-                    except json.decoder.JSONDecodeError as es:
-                        get_trace()
+                    if "a" in received_msg:
+                        audio_chunk = base64.b64decode(received_msg["a"]["r"])
+                        self.playing_stream.write(audio_chunk)
+#
+#                        silence = chr(0)*len(audio_chunk)*2
+#
+#                        free = self.playing_stream.get_write_available() # How much space is left in the buffer?
+#                        if free > len(audio_chunk): # Is there a lot of space in the buffer?
+#                            tofill = free - len(audio_chunk)
+#                            self.playing_stream.write(silence * tofill) # Fill it with silence
+#
+                    # if "v" in received_msg:
+                    #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
+                except json.decoder.JSONDecodeError as es:
+                    get_trace()
             except Exception as es:
                 get_trace()
 
@@ -116,14 +115,20 @@ class Client:
                     # We get the audio stream (1024 in size)
                     audio_data = self.recording_stream.read(1024)
                     # We send the frame
-                    to_send = json.dumps({
+                    frame = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
+                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1))
+                    })
+                    audio = json.dumps({
+                        "i": self.client_id,
+                        "s": self.session_id,
                         "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
                     })
+
                     try:
-                        self.s.sendall(bytes(to_send,encoding="utf-8"))
+                        self.s.sendall(bytes(frame, encoding="utf-8"))
+                        self.s.sendall(bytes(audio, encoding="utf-8"))
                     except ConnectionResetError as es:
                         get_trace()
             except KeyboardInterrupt as es:
