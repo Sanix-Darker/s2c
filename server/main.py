@@ -70,14 +70,17 @@ class Server:
     def handle_client(self, c, addr):
         while True:
             try:
-                data = c.recv(3072)
-                json_data = json.loads(data.decode())
+                try:
+                    data = c.recv(2048)
+                    json_data = json.loads(data.decode())
 
-                # We check first the format
-                # i for the id, s for the session,
-                # v for the video string and a for the audio chunk
-                if all(k in json_data.keys() for k in ["i", "s", "v", "a"]):
-                    self.broadcast(c, json_data)
+                    # We check first the format
+                    # i for the id, s for the session,
+                    # v for the video string and a for the audio chunk
+                    if all(k in json_data.keys() for k in ["i", "s", "v", "a"]):
+                        self.broadcast(c, json_data)
+                except json.decoder.JSONDecodeError:
+                    pass
             except socket.error:
                 c.close()
 

@@ -33,6 +33,8 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
+        self.size = [45, 16]
+
         while True:
             try:
                 self.s.connect((self.ip, self.port))
@@ -44,8 +46,8 @@ class Client:
 
         # The Cature for cam
         self.cam = VideoCapture(0)
-        self.cam.set(3, 25)
-        self.cam.set(4, 70)
+        self.cam.set(2, self.size[1])
+        self.cam.set(3, self.size[0])
 
         chunk_size = 1024 # 512
         audio_format = pyaudio.paInt16
@@ -67,22 +69,18 @@ class Client:
 
         while True:
             try:
-                received_msg = self.recv(3072).decode("utf-8")
+                received_msg = self.recv(2048).decode("utf-8")
                 if len(received_msg) > 30:
                     received_msg = json.loads(received_msg)
                     decoded_msg = {
-                        "i": self.client_id,
-                        "s": self.session_id,
-                        "v": decrypt_aes(
-                                self.session_key,
-                                received_msg["v"]),
-                        "a": decrypt_aes(
-                                self.session_key,
-                                received_msg["a"])
+                        "i": received_msg["i"],
+                        "s": received_msg["s"],
+                        "v": received_msg["v"],
+                        "a": received_msg["a"]
                     }
 
-                    self.playing_stream.write( decoded_msg["a"]["r"].encode().decode('ascii') )
-                    pretty_print_frame( decoded_msg["v"].decode("utf-8") )
+                    pretty_print_frame( received_msg["v"].decode("utf-8") )
+                    self.playing_stream.write( received_msg["a"]["r"].encode().decode('ascii') )
             except:
                 pass
 
@@ -98,16 +96,12 @@ class Client:
                     to_send = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": encrypt_aes(
-                                self.session_key,
-                                ascii_it(flip(resize(img, (70, 25)),1))).decode(),
-                        "a": encrypt_aes(
-                                self.session_key,
-                                json.dumps({"r": base64.b64encode(audio_data).decode()})).decode()
+                        "v": ascii_it(flip(resize(img, (self.size[0], self.size[1])),1)),
+                        "a": json.dumps({"r": base64.b64encode(audio_data).decode()})
                     })
 
                     self.s.sendall(bytes(to_send,encoding="utf-8"))
             except KeyboardInterrupt as es:
-                cam.release()
+                self.cam.release()
                 break
 
