@@ -21,6 +21,13 @@ from app.modules.security.aes import (
         decrypt_aes
 )
 
+import sys, traceback
+
+def get_trace():
+    print("Exception in code:")
+    print("-"*60)
+    traceback.print_exc(file=sys.stdout)
+    print("-"*60)
 
 
 class Client:
@@ -81,10 +88,10 @@ class Client:
 
         while True:
             try:
-                received_msg = self.recv(2048).decode("utf-8")
+                received_msg = self.s.recv(2048)
                 print("received_msg: ", received_msg)
-                if len(received_msg) > 30:
-                    received_msg = json.loads(received_msg)
+                if len(received_msg.decode("utf-8")) > 30:
+                    received_msg = json.loads(received_msg.decode("utf-8"))
 
                     if "a" in received_msg:
                         audio_bin =  json.loads(received_msg["a"])["r"].encode().decode('ascii')
@@ -93,9 +100,8 @@ class Client:
 
                     if "v" in received_msg:
                         pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"].decode("utf-8") )
-            except:
-                pass
-
+            except Exception as es:
+                get_trace()
 
     def send_data_to_server(self):
         while True:

@@ -75,11 +75,11 @@ class Server:
                 try:
                     data = c.recv(2048)
 
-                    if len(data.decode("utf-8"))) > 30:
+                    if len(data.decode("utf-8")) > 30:
                         json_data = json.loads(data.decode())
-                        print("-"*80)
+                        # print("-"*80)
 
-                        print("json_data: ", json_data)
+                        # print("json_data: ", json_data)
 
                         # We check first the format
                         # i for the id, s for the session,
