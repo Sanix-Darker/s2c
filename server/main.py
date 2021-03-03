@@ -66,7 +66,7 @@ class Server:
             client = self.rooms[json_data["s"]][elt]["c"]
             if client != self.s and client != sock:
                 try:
-                    client.send(bytes(json_data, encoding="utf-8"))
+                    client.send(bytes(json.dumps(json_data), encoding="utf-8"))
                 except Exception as es:
                     get_trace()
 
