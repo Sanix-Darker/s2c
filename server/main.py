@@ -74,7 +74,7 @@ class Server:
         while True:
             try:
                 try:
-                    data = c.recv(2048)
+                    data = c.recv(3072)
 
                     if len(data.decode("utf-8")) > 30:
                         json_data = json.loads(data.decode())
@@ -85,7 +85,7 @@ class Server:
                         # We check first the format
                         # i for the id, s for the session,
                         # v for the video string and a for the audio chunk
-                        if all(k in json_data.keys() for k in ["i", "s"]) and any(k in json_data.keys() for k in ["v", "a"]):
+                        if all(k in json_data.keys() for k in ["i", "s"]):
                             self.broadcast(c, json_data)
                 except json.decoder.JSONDecodeError as es:
                    pass
