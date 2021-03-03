@@ -1,5 +1,5 @@
 from hashlib import md5
-from uuid import uuid4
+from uuid import uuid4, uuid1
 from random import randint
 
 
@@ -25,23 +25,11 @@ def parse(prs: object):
     This method will generate a new session
 
     """
-    session = {
-        "key":  generate_key(prs),
-        "host": prs.host,
-        "port": prs.port,
-        "id": "",
-        "status": ""
+    return {
+        "session_id": str(uuid1()) if prs.session_id is None else prs.session_id,
+        "session_key":  generate_key(prs),
+        "client_id": str(uuid4()) if prs.client_id is None else prs.client_id,
+        "ip": prs.ip,
+        "port": int(prs.port)
     }
-    if prs.create is None and prs.join is None:
-        session["status"] = "create"
-        session["id"] = str(uuid4())
-    elif prs.create is not None and prs.join is None:
-        session["status"] = "create"
-        session["id"] = prs.create
-    elif prs.create is None and prs.join is not None:
-        session["status"] = "join"
-        session["id"] = prs.join
-
-    return session
-
 

@@ -5,27 +5,30 @@ import argparse
 import socket
 import threading
 import json
+import time
 
 
 
 class Server:
     def __init__(self, port):
             self.rooms = {}
-            self.ip = socket.gethostbyname(socket.gethostname())
+            self.ip = '0.0.0.0'
+            self.port = port
             while True:
                 try:
                     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.s.bind((self.ip, self.port))
 
+                    self.s.listen()
+
                     break
                 except:
-                    print("[x] Couldn't bind to that port []".format(str(self.port)))
+                    print("[x] Couldn't bind to that port {}".format(str(self.port)))
+                    time.sleep(1)
 
             self.accept_connections()
 
     def accept_connections(self):
-
-        self.s.listen(100)
 
         print('[-] Running on IP: ' + self.ip)
         print('[-] Running on port: ' + str(self.port))
@@ -46,7 +49,7 @@ class Server:
             self.rooms[json_data["s"]] = {}
 
         # if the current id not in the target session, we add it
-        if json_data["i"] not in self.rooms["s"]
+        if json_data["i"] not in self.rooms["s"]:
             self.rooms[json_data["s"]][json_data["i"]] = {"c": sock}
 
     def broadcast(self, sock, json_data):
@@ -85,7 +88,7 @@ if __name__ == "__main__":
     prs = argparse.ArgumentParser()
     prs.add_argument('-p', '--port',
             help='The port where the server will be running',
-            type=str, default="77223")
+            type=int, default=1122)
     prs = prs.parse_args()
 
     # We start our server

@@ -1,7 +1,13 @@
 # Just the encrypt/decrypt methods
 # for kripta_aes
+from app.modules.security.KriptaAES import KriptaAES
 
-def encrypt_aes(kripta_aes: object, key: str, msg: str) -> bytes:
+
+# We instantiate the class only once
+kripta_aes = KriptaAES()
+
+
+def encrypt_aes(key: str, msg: str) -> bytes:
     """
     This method will just encrypt a message from kripta_aes
     module
@@ -10,7 +16,7 @@ def encrypt_aes(kripta_aes: object, key: str, msg: str) -> bytes:
 
     return kripta_aes.encrypt(msg, key)
 
-def decrypt_aes(kripta_aes: object, key: str, enc_msg: str) -> bytes:
+def decrypt_aes(key: str, enc_msg: str) -> bytes:
     """
     This method will just decrypt an encrypted message from
     kripta_aes module
