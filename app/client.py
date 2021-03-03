@@ -88,7 +88,7 @@ class Client:
                     received_msg = json.loads(received_msg.decode("utf-8"))
 
                     if "a" in received_msg:
-                        audio_bin = bytes(received_msg["a"]["r"].decode('ascii'))
+                        audio_bin = base64.b64decode(received_msg["a"]["r"])
                         self.playing_stream.write(audio_bin)
 
                     #if "v" in received_msg:
