@@ -83,9 +83,8 @@ class Client:
 
         while True:
             try:
-                received_msg = self.s.recv(7168)
+                received_msg = self.s.recv(10240)
 
-                print("received_msg : ", received_msg)
                 if len(received_msg.decode("utf-8")) > 30:
                     try:
                         print("received_msg : ", received_msg)
