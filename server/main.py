@@ -74,19 +74,20 @@ class Server:
         while True:
             try:
                 try:
-                    data = c.recv(3072)
-
+                    data = c.recv(4096)
+                    print("data: ", data)
                     if len(data.decode("utf-8")) > 30:
                         json_data = json.loads(data.decode())
-                        # print("-"*80)
-
-                        # print("json_data: ", json_data)
+                        print("-"*80)
+                        print("json_data: ", json_data)
 
                         # We check first the format
                         # i for the id, s for the session,
                         # v for the video string and a for the audio chunk
-                        if all(k in json_data.keys() for k in ["i", "s"]):
+                        if all(k in json_data.keys() for k in ["i", "s", "a", "v"]):
                             self.broadcast(c, json_data)
+                        else:
+                            print("[x] Incomplete sequence !")
                 except json.decoder.JSONDecodeError as es:
                    pass
             except socket.error:
