@@ -103,24 +103,13 @@ class Client:
             try:
                 _, img = self.cam.read()
                 if _:
-
+                    # We get the audio stream (1024 in size)
+                    audio_data = self.recording_stream.read(1024)
                     # We send the frame
                     to_send = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1))
-                    })
-                    try:
-                        self.s.sendall(bytes(to_send,encoding="utf-8"))
-                    except ConnectionResetError as es:
-                        time.sleep(1)
-
-                    # We send the audio
-                    # We get the audio stream (1024 in size)
-                    audio_data = self.recording_stream.read(1024)
-                    to_send = json.dumps({
-                        "i": self.client_id,
-                        "s": self.session_id,
+                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
                         "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
                     })
                     try:
