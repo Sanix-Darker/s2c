@@ -49,7 +49,7 @@ class Client:
         self.cam.set(2, self.size[1])
         self.cam.set(3, self.size[0])
 
-        chunk_size = 1024 # 512
+        chunk_size = 512
         audio_format = pyaudio.paInt16
         channels = 1
         rate = 20000
@@ -69,15 +69,9 @@ class Client:
 
         while True:
             try:
-                received_msg = self.recv(2048).decode("utf-8")
+                received_msg = self.recv(1024).decode("utf-8")
                 if len(received_msg) > 30:
                     received_msg = json.loads(received_msg)
-                    decoded_msg = {
-                        "i": received_msg["i"],
-                        "s": received_msg["s"],
-                        "v": received_msg["v"],
-                        "a": received_msg["a"]
-                    }
 
                     pretty_print_frame( received_msg["v"].decode("utf-8") )
                     self.playing_stream.write( received_msg["a"]["r"].encode().decode('ascii') )
@@ -91,7 +85,7 @@ class Client:
                 _, img = self.cam.read()
                 if _:
                     # We get the audio stream (1024 in size)
-                    audio_data = self.recording_stream.read(1024)
+                    audio_data = self.recording_stream.read(512)
 
                     to_send = json.dumps({
                         "i": self.client_id,

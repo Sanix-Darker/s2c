@@ -71,7 +71,7 @@ class Server:
         while True:
             try:
                 try:
-                    data = c.recv(2048)
+                    data = c.recv(1024)
                     json_data = json.loads(data.decode())
 
                     # We check first the format
