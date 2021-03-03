@@ -33,7 +33,7 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [45, 16]
+        self.size = [37, 11]
 
         while True:
             try:
@@ -108,8 +108,10 @@ class Client:
                         "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
                         "a": json.dumps({"r": base64.b64encode(audio_data).decode()})
                     })
-
-                    self.s.sendall(bytes(to_send,encoding="utf-8"))
+                    try:
+                        self.s.sendall(bytes(to_send,encoding="utf-8"))
+                    except ConnectionResetError as es:
+                        time.sleep(1)
             except KeyboardInterrupt as es:
                 self.cam.release()
                 break
