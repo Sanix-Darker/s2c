@@ -72,7 +72,7 @@ class Server:
     def handle_client(self, c, addr):
         while True:
             try:
-                data = c.recv(3072)
+                data = c.recv(4096)
                 print("data: ", data)
                 print("data.decode('utf-8'): ", data.decode("utf-8"))
                 json_data = json.loads(data.decode())

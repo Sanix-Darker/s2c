@@ -81,7 +81,7 @@ class Client:
 
         while True:
             try:
-                received_msg = self.recv(3072).decode("utf-8")
+                received_msg = self.recv(4096).decode("utf-8")
                 print("received_msg: ", received_msg)
                 if len(received_msg) > 30:
                     received_msg = json.loads(received_msg)
