@@ -89,8 +89,15 @@ class Client:
                     received_msg = json.loads(received_msg.decode("utf-8"))
 
                     if "a" in received_msg:
-                        audio_bin = base64.b64decode(received_msg["a"]["r"])
-                        self.playing_stream.write(audio_bin)
+                        audio_chunk = base64.b64decode(received_msg["a"]["r"])
+                        self.playing_stream.write(audio_chunk)
+
+                        silence = chr(0)*audio_chunk*2
+
+                        free = self.playing_stream.get_write_available() # How much space is left in the buffer?
+                        if free > CHUNK # Is there a lot of space in the buffer?
+                            tofill = free - CHUNK
+                             self.playing_stream.write(SILENCE * tofill) # Fill it with silence
 
                     # if "v" in received_msg:
                     #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
