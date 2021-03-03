@@ -51,7 +51,7 @@ class Client:
         self.cam.set(2, self.size[1])
         self.cam.set(3, self.size[0])
 
-        chunk_size = 512
+        chunk_size = 1024
         audio_format = pyaudio.paInt16
         channels = 1
         rate = 20000
@@ -86,21 +86,24 @@ class Client:
                 received_msg = self.s.recv(2048)
 
                 if len(received_msg.decode("utf-8")) > 30:
-                    received_msg = json.loads(received_msg.decode("utf-8"))
+                    try:
+                        received_msg = json.loads(received_msg.decode("utf-8"))
 
-                    if "a" in received_msg:
-                        audio_chunk = base64.b64decode(received_msg["a"]["r"])
-                        self.playing_stream.write(audio_chunk)
+                        if "a" in received_msg:
+                            audio_chunk = base64.b64decode(received_msg["a"]["r"])
+                            self.playing_stream.write(audio_chunk)
 
-                        silence = chr(0)*len(audio_chunk)*2
+                            silence = chr(0)*len(audio_chunk)*2
 
-                        free = self.playing_stream.get_write_available() # How much space is left in the buffer?
-                        if free > len(audio_chunk): # Is there a lot of space in the buffer?
-                            tofill = free - len(audio_chunk)
-                            self.playing_stream.write(silence * tofill) # Fill it with silence
+                            free = self.playing_stream.get_write_available() # How much space is left in the buffer?
+                            if free > len(audio_chunk): # Is there a lot of space in the buffer?
+                                tofill = free - len(audio_chunk)
+                                self.playing_stream.write(silence * tofill) # Fill it with silence
 
-                    # if "v" in received_msg:
-                    #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
+                        # if "v" in received_msg:
+                        #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
+                    except json.decoder.JSONDecodeError as es:
+                        pass
             except Exception as es:
                 get_trace()
 
@@ -110,7 +113,7 @@ class Client:
                 _, img = self.cam.read()
                 if _:
                     # We get the audio stream (1024 in size)
-                    audio_data = self.recording_stream.read(512)
+                    audio_data = self.recording_stream.read(1024)
                     # We send the frame
                     to_send = json.dumps({
                         "i": self.client_id,
