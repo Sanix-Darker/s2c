@@ -92,8 +92,8 @@ class Client:
                         audio_bin = base64.b64decode(received_msg["a"]["r"])
                         self.playing_stream.write(audio_bin)
 
-                    if "v" in received_msg:
-                        pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
+                    # if "v" in received_msg:
+                    #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
             except Exception as es:
                 get_trace()
 
