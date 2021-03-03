@@ -49,15 +49,27 @@ class Client:
         self.cam.set(2, self.size[1])
         self.cam.set(3, self.size[0])
 
-        chunk_size = 1024
+        chunk_size = 512
         audio_format = pyaudio.paInt16
         channels = 1
         rate = 20000
 
         # initialise microphone recording
         self.p = pyaudio.PyAudio()
-        self.playing_stream = self.p.open(format=audio_format, channels=channels, rate=rate, output=True, frames_per_buffer=chunk_size)
-        self.recording_stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, frames_per_buffer=chunk_size)
+        self.playing_stream = self.p.open(
+                format=audio_format,
+                channels=channels,
+                rate=rate,
+                output=True,
+                frames_per_buffer=chunk_size
+        )
+        self.recording_stream = self.p.open(
+                format=audio_format,
+                channels=channels,
+                rate=rate,
+                input=True,
+                frames_per_buffer=chunk_size
+        )
 
         print("[-] Connected to Server")
 
@@ -69,13 +81,14 @@ class Client:
 
         while True:
             try:
-                received_msg = self.recv(1024).decode("utf-8")
+                received_msg = self.recv(3072).decode("utf-8")
+                print("received_msg: ", received_msg)
                 if len(received_msg) > 30:
                     received_msg = json.loads(received_msg)
 
                     audio_bin =  json.loads(received_msg["a"])["r"].encode().decode('ascii')
                     print("audio_bin : ", audio_bin)
-                    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"].decode("utf-8") )
+                   # pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"].decode("utf-8") )
                     self.playing_stream.write(audio_bin)
             except:
                 pass

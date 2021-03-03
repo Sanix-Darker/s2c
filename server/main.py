@@ -49,8 +49,9 @@ class Server:
             self.rooms[json_data["s"]] = {}
 
         # if the current id not in the target session, we add it
-        if json_data["i"] not in self.rooms["s"]:
-            self.rooms[json_data["s"]][json_data["i"]] = {"c": sock}
+        if json_data["i"] not in  self.rooms[json_data["s"]]:
+            self.rooms[json_data["s"]][json_data["i"]] = {}
+            self.rooms[json_data["s"]][json_data["i"]]["c"] = sock
 
     def broadcast(self, sock, json_data):
         """
@@ -61,26 +62,28 @@ class Server:
         # We loop over all clients in the session
         # To send them the flux
         for elt in self.rooms[json_data["s"]]:
-            if elt["c"] != self.s and elt["c"] != sock:
+            client = self.rooms[json_data["s"]][elt]["c"]
+            if client != self.s and client != sock:
                 try:
-                    elt["c"].send(json_data)
+                    client.send(json_data)
                 except:
                     pass
 
     def handle_client(self, c, addr):
         while True:
             try:
-                try:
-                    data = c.recv(1024)
-                    json_data = json.loads(data.decode())
+                data = c.recv(3072)
+                print("data: ", data)
+                print("data.decode('utf-8'): ", data.decode("utf-8"))
+                json_data = json.loads(data.decode())
 
-                    # We check first the format
-                    # i for the id, s for the session,
-                    # v for the video string and a for the audio chunk
-                    if all(k in json_data.keys() for k in ["i", "s", "v", "a"]):
-                        self.broadcast(c, json_data)
-                except json.decoder.JSONDecodeError:
-                    pass
+                print("json_data: ", json_data)
+
+                # We check first the format
+                # i for the id, s for the session,
+                # v for the video string and a for the audio chunk
+                if all(k in json_data.keys() for k in ["i", "s", "v", "a"]):
+                    self.broadcast(c, json_data)
             except socket.error:
                 c.close()
 
