@@ -16,18 +16,13 @@ from app.utils.camera import (
         pretty_print_frame,
         ascii_it
 )
+from app.utils.helpers import get_trace
+
 from app.modules.security.aes import (
         encrypt_aes,
         decrypt_aes
 )
 
-import sys, traceback
-
-def get_trace():
-    print("Exception in code:")
-    print("-"*60)
-    traceback.print_exc(file=sys.stdout)
-    print("-"*60)
 
 
 class Client:

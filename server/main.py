@@ -6,6 +6,7 @@ import socket
 import threading
 import json
 import time
+from app.utils.helpers import get_trace
 
 
 
@@ -61,13 +62,16 @@ class Server:
 
         # We loop over all clients in the session
         # To send them the flux
+        print(self.rooms[json_data["s"]])
         for elt in self.rooms[json_data["s"]]:
+            print("elt: ", elt)
             client = self.rooms[json_data["s"]][elt]["c"]
             if client != self.s and client != sock:
                 try:
+                    print("sending...")
                     client.send(json_data)
-                except:
-                    pass
+                except Exception as es:
+                    get_trace()
 
     def handle_client(self, c, addr):
         while True:
