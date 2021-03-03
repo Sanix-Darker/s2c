@@ -88,11 +88,11 @@ class Client:
                     received_msg = json.loads(received_msg.decode("utf-8"))
 
                     if "a" in received_msg:
-                        audio_bin =  json.loads(received_msg["a"])["r"].encode().decode('ascii')
+                        audio_bin = bytes(received_msg["a"]["r"].decode('ascii'))
                         self.playing_stream.write(audio_bin)
 
-                    if "v" in received_msg:
-                        pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
+                    #if "v" in received_msg:
+                    #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
             except Exception as es:
                 get_trace()
 
@@ -119,7 +119,7 @@ class Client:
                     to_send = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "a": json.dumps({"r": base64.b64encode(audio_data).decode()})
+                        "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
                     })
                     try:
                         self.s.sendall(bytes(to_send,encoding="utf-8"))
