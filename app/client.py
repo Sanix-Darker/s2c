@@ -35,14 +35,13 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [35, 11]
+        self.size = [50, 15]
 
         self.tmp_seqs = {}
 
         while True:
             try:
                 self.s.connect((self.ip, self.port))
-
                 break
             except:
                 print("[x] Couldn't connect to server {}:{}".format(str(self.ip), str(self.port)))
@@ -53,10 +52,10 @@ class Client:
         self.cam.set(2, self.size[1])
         self.cam.set(3, self.size[0])
 
-        chunk_size = 1024
+        chunk_size = 512
         audio_format = pyaudio.paInt16
         channels = 1
-        rate = 20000
+        rate = 10000
 
         # initialise microphone recording
         self.p = pyaudio.PyAudio()
@@ -79,9 +78,15 @@ class Client:
 
         # start threads
         receive_thread = threading.Thread(target=self.receive_server_data).start()
-        self.send_data_to_server()
+        threading.Thread(target=self.send_audio_to_server).start()
+
+        self.send_frame_to_server()
 
     def receive_server_data(self):
+        """
+
+        """
+        print("[+] receiver's Thread started...")
 
         while True:
             try:
@@ -94,34 +99,55 @@ class Client:
                     if "a" in received_msg:
                         audio_chunk = base64.b64decode(received_msg["a"]["r"])
                         self.playing_stream.write(audio_chunk)
-#
-#                        silence = chr(0)*len(audio_chunk)*2
-#
-#                        free = self.playing_stream.get_write_available() # How much space is left in the buffer?
-#                        if free > len(audio_chunk): # Is there a lot of space in the buffer?
-#                            tofill = free - len(audio_chunk)
-#                            self.playing_stream.write(silence * tofill) # Fill it with silence
-#
-                    # if "v" in received_msg:
+
+                    #if "v" in received_msg:
                     #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
                 except json.decoder.JSONDecodeError as es:
                     get_trace()
             except Exception as es:
                 get_trace()
 
-    def send_data_to_server(self):
+    def send_audio_to_server(self):
+        """
+        This method will send audio in a seperate thread
+
+        """
+        print("[+] Audio sender's Thread started...")
+
+        while True:
+            try:
+                # We get the audio stream (1024 in size)
+                audio_data = self.recording_stream.read(512)
+
+                # We send the audio tape
+                audio_tape = json.dumps({
+                    "i": self.client_id,
+                    "s": self.session_id,
+                    "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
+                })
+
+                try:
+                    self.s.sendall(bytes(audio_tape, encoding="utf-8"))
+                except ConnectionResetError as es:
+                    get_trace()
+            except KeyboardInterrupt as es:
+                self.cam.release()
+                break
+
+    def send_frame_to_server(self):
+        """
+        This method will send the frames in a while Loop
+
+        """
         while True:
             try:
                 _, img = self.cam.read()
                 if _:
-                    # We get the audio stream (1024 in size)
-                    audio_data = self.recording_stream.read(1024)
                     # We send the frame
                     frame = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
                         "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
-                        "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
                     })
                     try:
                         self.s.sendall(bytes(frame, encoding="utf-8"))
