@@ -69,6 +69,7 @@ class Server:
                 print(f"[-] Session {r} erased !")
                 del self.rooms[r]
 
+        print(f"sessions : [{len(self.rooms)}]")
         time.sleep(360)
 
     def broadcast(self, sock, json_data):

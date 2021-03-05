@@ -5,9 +5,14 @@ from s2c.settings import version as VERSION
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
+
 setuptools.setup(
     name="s2c",
     version=VERSION,
+    install_requires=required,
     scripts=['./scripts/s2c', './scripts/s2c_server'],
     author="Sanix-darker",
     author_email="s4nixd@gmail.com",

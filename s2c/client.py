@@ -29,7 +29,7 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [50, 15]
+        self.size = [60, 20]
         self.faces = {}
 
         while True:
@@ -100,18 +100,20 @@ class Client:
 
             to_print = ""
             to_print2 = ""
-            for i in range(15):
+            for i in range(20):
                 try:
                     for index, f in enumerate(self.faces):
+                        uid = "client_id: " + f
                         if index < 3:
                             if f not in to_print:
-                                to_print += "client_id: " + f + "\n"
-                            to_print += self.faces[f].split("\n")[i] + " | "
+                                to_print += uid + " "*(len(self.faces[f].split("\n")[i]) - len(uid)) + " | "
+                            else:
+                                to_print += self.faces[f].split("\n")[i] + " | "
                         else:
-                            if f not in to_print:
-                                to_print += "client_id: " + f + "\n"
-                            to_print2 += self.faces[f].split("\n")[i] + " | "
-
+                            if f not in to_prin2t:
+                                to_print2 += "client_id: " + f
+                            else:
+                                to_print2 += self.faces[f].split("\n")[i] + " | "
                     to_print += "\n"
                     if len(self.faces) > 3:
                         to_print2 += "\n"
