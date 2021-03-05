@@ -32,7 +32,7 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [34, 11]
+        self.size = [50, 15]
         self.faces = {}
 
         while True:
@@ -97,13 +97,13 @@ class Client:
         """
         while True:
             system('cls' if os_name == 'nt' else 'clear')
-            print("-" * 50)
+            print("-" * 30)
             print(f"[+] s2c v{version} | session_id : {self.session_id}")
-            print("-" * 50)
+            print("-" * 30)
 
             to_print = ""
             to_print2 = ""
-            for i in range(10):
+            for i in range(15):
                 try:
                     for index, f in enumerate(self.faces):
                         if index < 3:
@@ -123,7 +123,7 @@ class Client:
                     pass
 
             print(to_print)
-            print("\n" + "-"*50)
+            print("\n" + "-"*30)
             print(to_print2)
 
     def receive_server_data(self):
