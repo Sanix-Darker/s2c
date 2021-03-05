@@ -2,7 +2,11 @@ import json, socket, threading, pyaudio
 import time
 import base64
 
-from os import path as os_path
+from os import (
+        path as os_path,
+        name as os_name,
+        system
+)
 from app.settings import *
 
 from cv2 import (
@@ -12,16 +16,9 @@ from cv2 import (
         COLOR_BGR2GRAY,
         VideoCapture
 )
-from app.utils.camera import (
-        pretty_print_frame,
-        ascii_it
-)
-from app.utils.helpers import get_trace
+from app.utils.camera import ascii_it
 
-from app.modules.security.aes import (
-        encrypt_aes,
-        decrypt_aes
-)
+from app.utils.helpers import get_trace
 
 
 
@@ -35,9 +32,8 @@ class Client:
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [50, 15]
-
-        self.tmp_seqs = {}
+        self.size = [34, 11]
+        self.faces = {}
 
         while True:
             try:
@@ -74,37 +70,81 @@ class Client:
                 frames_per_buffer=chunk_size
         )
 
-        print("[-] Connected to Server")
+        self.start_logs()
 
         # start threads
         receive_thread = threading.Thread(target=self.receive_server_data).start()
         threading.Thread(target=self.send_audio_to_server).start()
-
+        threading.Thread(target=self.print_faces).start()
         self.send_frame_to_server()
+
+    def start_logs(self):
+        """
+        Just the starting logs
+
+        """
+        system('cls' if os_name == 'nt' else 'clear')
+        print("[-] s2c started...")
+        print(f"[>] session_id : {self.session_id}")
+        print(f"[<] client_id : {self.client_id}")
+        print(f"[:] session_key : {self.session_key}")
+        print("[-] Connected to Server")
+
+    def print_faces(self):
+        """
+        Just to print faces from the self.faces
+
+        """
+        while True:
+            system('cls' if os_name == 'nt' else 'clear')
+            print("-" * 50)
+            print(f"[+] s2c v{version} | session_id : {self.session_id}")
+            print("-" * 50)
+
+            to_print = ""
+            to_print2 = ""
+            for i in range(10):
+                try:
+                    for index, f in enumerate(self.faces):
+                        if index < 3:
+                            if f not in to_print:
+                                to_print += "client_id: " + f + "\n"
+                            to_print += self.faces[f].split("\n")[i] + " | "
+                        else:
+                            if f not in to_print:
+                                to_print += "client_id: " + f + "\n"
+                            to_print2 += self.faces[f].split("\n")[i] + " | "
+
+                    to_print += "\n"
+                    if len(self.faces) > 3:
+                        to_print2 += "\n"
+
+                except Exception as es:
+                    pass
+
+            print(to_print)
+            print("\n" + "-"*50)
+            print(to_print2)
 
     def receive_server_data(self):
         """
-
+        This method is responsible on receiving the video and the audio
         """
-        print("[+] receiver's Thread started...")
+        # print("[+] receiver's Thread started...")
 
         while True:
+            received_msg = self.s.recv(2048)
             try:
-                received_msg = self.s.recv(2048)
+                received_msg = json.loads(received_msg.decode("utf-8"))
 
-                try:
-                    print("received_msg : ", received_msg)
-                    received_msg = json.loads(received_msg.decode("utf-8"))
+                if "a" in received_msg:
+                    audio_chunk = base64.b64decode(received_msg["a"])
+                    self.playing_stream.write(audio_chunk)
 
-                    if "a" in received_msg:
-                        audio_chunk = base64.b64decode(received_msg["a"]["r"])
-                        self.playing_stream.write(audio_chunk)
+                if "v" in received_msg:
+                    self.faces[received_msg["i"]] = received_msg["v"]
 
-                    #if "v" in received_msg:
-                    #    pretty_print_frame(received_msg["i"], received_msg["s"], received_msg["v"] )
-                except json.decoder.JSONDecodeError as es:
-                    get_trace()
-            except Exception as es:
+            except (Exception, json.decoder.JSONDecodeError) as es:
                 get_trace()
 
     def send_audio_to_server(self):
@@ -112,7 +152,7 @@ class Client:
         This method will send audio in a seperate thread
 
         """
-        print("[+] Audio sender's Thread started...")
+        # print("[+] Audio sender's Thread started...")
 
         while True:
             try:
@@ -123,7 +163,7 @@ class Client:
                 audio_tape = json.dumps({
                     "i": self.client_id,
                     "s": self.session_id,
-                    "a": {"r": base64.b64encode(audio_data).decode("utf-8")}
+                    "a": base64.b64encode(audio_data).decode("utf-8")
                 })
 
                 try:
@@ -143,13 +183,22 @@ class Client:
             try:
                 _, img = self.cam.read()
                 if _:
+                    # We enerate our ascii frame
+                    ascii_frame = ascii_it(
+                                self.client_id,
+                                self.session_id,
+                                flip(resize(img, (self.size[0], self.size[1])),1))
+
                     # We send the frame
                     frame = json.dumps({
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_it(self.client_id, self.session_id, flip(resize(img, (self.size[0], self.size[1])),1)),
+                        "v": ascii_frame
                     })
+                    # We add our self's fce in the faces object
+                    self.faces[self.client_id] = ascii_frame
                     try:
+                        # We send through sockets
                         self.s.sendall(bytes(frame, encoding="utf-8"))
                     except ConnectionResetError as es:
                         get_trace()
