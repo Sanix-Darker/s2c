@@ -17,6 +17,10 @@ No Browser needed !
 
 ### Installation
 
+Install bindings librairies for pyaudio !
+- On linux/Mac : `sudo apt install -y portaudio19-dev` and `sudo apt install -y pyaudio`
+
+
 Because it's a pip package, you need to install it using pypi !
 ```shell
 pip install s2c

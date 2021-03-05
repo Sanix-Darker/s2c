@@ -27,6 +27,7 @@ class Server:
 
     def accept_connections(self):
 
+        print("[-] S2C server started...")
         print('[-] Running on IP: ' + self.ip)
         print('[-] Running on port: ' + str(self.port))
 
