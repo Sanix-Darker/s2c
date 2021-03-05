@@ -1,6 +1,6 @@
 # Just the encrypt/decrypt methods
 # for kripta_aes
-from app.modules.security.KriptaAES import KriptaAES
+from s2c.modules.security.KriptaAES import KriptaAES
 
 
 # We instantiate the class only once

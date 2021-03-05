@@ -1,10 +1,15 @@
-# Requirements list
-
 numpy==1.15.2
 
 opencv-python==3.4.8.29
 
 pyaudio
 
+# AES encryption
 # pycryptodome==3.9.0
+
+# for tests
+# pytest
+
+# others
+setuptools
 

@@ -1,14 +1,12 @@
 import json, socket, threading, pyaudio
 import time
 import base64
-
 from os import (
         path as os_path,
         name as os_name,
         system
 )
-from app.settings import *
-
+from s2c.settings import *
 from cv2 import (
         resize,
         flip,
@@ -16,9 +14,8 @@ from cv2 import (
         COLOR_BGR2GRAY,
         VideoCapture
 )
-from app.utils.camera import ascii_it
-
-from app.utils.helpers import get_trace
+from s2c.utils.camera import ascii_it
+from s2c.utils.helpers import get_trace
 
 
 

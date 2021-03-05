@@ -6,4 +6,7 @@ venv
 history
 data
 tmp
+build/
+dist/
+s2c.egg-info/
 

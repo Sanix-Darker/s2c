@@ -1,5 +1,5 @@
 from bisect import bisect
-from app.settings import *
+from s2c.settings import *
 
 from cv2 import (
         resize,

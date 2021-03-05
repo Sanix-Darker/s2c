@@ -2,9 +2,9 @@
 # The main script for s2c
 # parse input parameters and
 import argparse
-from app.client import Client
-from app.utils.session import parse
-from app.settings import HOST, PORT
+from s2c.client import Client
+from s2c.utils.session import parse
+from s2c.settings import HOST, PORT
 
 
 

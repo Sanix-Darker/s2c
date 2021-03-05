@@ -2,7 +2,7 @@
 # The place where i will forward the whole traffic
 # By d4rk3r
 import socket, argparse, threading, json, time
-from app.utils.helpers import get_trace
+from s2c.utils.helpers import get_trace
 
 
 
