@@ -28,6 +28,8 @@ pip install s2c
 
 ### Manual
 
+#### Client 
+
 The manual of s2c :
 ```shell
 usage: s2c [-h] [-s SESSION_ID] [-c CLIENT_ID] [-k KEY] [-i IP] [-p PORT]
@@ -47,7 +49,15 @@ optional arguments:
 
 For example : `$s2c -s 1 -c 1 -i 127.0.0.1 -p 1122`
 Will connect you to the server '127.0.0.1:1122' in the session '1', your id is '1' !
+
+#### Server
+
 NB : At this step, the server should be running on ip : 127.0.0.1 and on port 1122, don't forget to allow the port using ufw (on linux)
+
+To run the server :
+```
+s2c_server -p 1122
+```
 
 ## From sources
 
