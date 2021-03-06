@@ -120,7 +120,6 @@ class Client:
 
                 except Exception as es:
                     pass
-
             print(to_print)
             print("\n" + "-"*30)
             print(to_print2)
@@ -132,10 +131,9 @@ class Client:
         # print("[+] receiver's Thread started...")
 
         while True:
-            received_msg = self.s.recv(2048)
+            received_msg = self.s.recv(3072)
             try:
                 received_msg = json.loads(received_msg.decode("utf-8"))
-
                 if "a" in received_msg:
                     audio_chunk = base64.b64decode(received_msg["a"])
                     self.playing_stream.write(audio_chunk)
@@ -143,7 +141,7 @@ class Client:
                 if "v" in received_msg:
                     self.faces[received_msg["i"]] = received_msg["v"]
 
-            except (Exception, json.decoder.JSONDecodeError) as es:
+            except Exception as es:
                 get_trace()
 
     def send_audio_to_server(self):

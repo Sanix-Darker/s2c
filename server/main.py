@@ -36,7 +36,7 @@ class Server:
             # Here we're going to handle clients with threads
             threading.Thread(target=self.handle_client,args=(c,addr,)).start()
             # A seperate thread to delete all old session tofree the ram
-            threading.Thread(target=self.erase_old_sessions).start()
+            # threading.Thread(target=self.erase_old_sessions).start()
 
     def save_room_set(self, sock, json_data):
         """
@@ -100,7 +100,7 @@ class Server:
         while True:
             try:
                 try:
-                    json_data = json.loads(c.recv(2048).decode("utf-8"))
+                    json_data = json.loads(c.recv(3072).decode("utf-8"))
 
                     # i for the id, s for the session,
                     # 'v' for the video string and 'a' for the audio chunk
