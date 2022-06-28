@@ -7,7 +7,6 @@ from s2c.utils.session import parse
 from s2c.settings import HOST, PORT
 
 
-
 if __name__ == "__main__":
     # Initialize the arguments
     prs = argparse.ArgumentParser()

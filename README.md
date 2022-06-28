@@ -101,5 +101,3 @@ Just as the section Manual under How to use, you just have to replace `s2c` by `
 ## About
 
 - [d4rk3r](https://github,com/sanix-darker)
-
-
