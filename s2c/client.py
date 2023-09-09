@@ -2,7 +2,6 @@ import json, socket, threading, pyaudio
 import time
 import base64
 from os import (
-        path as os_path,
         name as os_name,
         system
 )
@@ -10,8 +9,6 @@ from s2c.settings import *
 from cv2 import (
         resize,
         flip,
-        cvtColor,
-        COLOR_BGR2GRAY,
         VideoCapture
 )
 from s2c.utils.camera import ascii_it
@@ -70,7 +67,7 @@ class Client:
         self.start_logs()
 
         # start threads
-        receive_thread = threading.Thread(target=self.receive_server_data).start()
+        threading.Thread(target=self.receive_server_data).start()
         threading.Thread(target=self.send_audio_to_server).start()
         threading.Thread(target=self.print_faces).start()
         self.send_frame_to_server()
@@ -118,7 +115,7 @@ class Client:
                     if len(self.faces) > 3:
                         to_print2 += "\n"
 
-                except Exception as es:
+                except Exception:
                     pass
             print(to_print)
             print("\n" + "-"*30)
@@ -141,7 +138,7 @@ class Client:
                 if "v" in received_msg:
                     self.faces[received_msg["i"]] = received_msg["v"]
 
-            except Exception as es:
+            except Exception:
                 get_trace()
 
     def send_audio_to_server(self):
@@ -165,9 +162,9 @@ class Client:
 
                 try:
                     self.s.sendall(bytes(audio_tape, encoding="utf-8"))
-                except ConnectionResetError as es:
+                except ConnectionResetError:
                     get_trace()
-            except KeyboardInterrupt as es:
+            except KeyboardInterrupt:
                 self.cam.release()
                 break
 
@@ -197,9 +194,9 @@ class Client:
                     try:
                         # We send through sockets
                         self.s.sendall(bytes(frame, encoding="utf-8"))
-                    except ConnectionResetError as es:
+                    except ConnectionResetError:
                         get_trace()
-            except KeyboardInterrupt as es:
+            except KeyboardInterrupt:
                 self.cam.release()
                 break
 
