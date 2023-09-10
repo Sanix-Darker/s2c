@@ -1,34 +1,41 @@
 # S2C
 
-A secret video chat "in terminal" using PGP encryptions and AES encryptions.
+video-audio-conferencing and text-messaging from your terminal.
 No Browser needed !
 
 ## Features
 
-- Video + Audio Chat in terminal
+- [x] Video + Audio + Chat in terminal
+- [] Tor supported to route your traffic
+- [] Browser client
 
 ### Requirements
 
 - Python (3.x is recommended)
-- Pip3
-- PyAudio
+- PyAudio (sudo apt install portaudio19-dev python3-pyaudio)
 
 ## How to use
 
 ### Installation
 
 Install bindings librairies for pyaudio !
-- On linux/Mac : `sudo apt install -y portaudio19-dev` and `sudo apt install -y pyaudio`
+- On linux/Mac : `sudo apt install -y portaudio19-dev python3-pyaudio pyaudio`
 
-
-Because it's a pip package, you need to install it using pypi !
-```shell
+You can install it from pypi :
+```bash
 pip install s2c
 ```
 
-### Manual
+Or just from source :
+```bash
+git clone https://github.com/sanix-darker/s2c.git
+make install
+make dist
+```
 
-#### Client 
+### How to use it
+
+#### Client
 
 The manual of s2c :
 ```shell
@@ -58,27 +65,6 @@ To run the server :
 ```
 s2c_server -p 1122
 ```
-
-## From sources
-
-### How to install
-
-Install bindings librairies for pyaudio !
-- On linux/Mac : `sudo apt install -y portaudio19-dev` and `sudo apt install -y pyaudio`
-
-Clone and set the virtualenvironment :
-```shell
-# We clone the repository
-git clone https://github.com/sanix-darker/s2c
-
-# We Set the virtualenv
-virtualenv -p python3 venv
-source venv/bin/activate
-
-# We install requirements
-pip install -r requirements
-```
-
 ### How to launch
 
 #### The server
@@ -93,10 +79,6 @@ optional arguments:
   -h, --help            show this help message and exit
   -p PORT, --port PORT  The port where the server will be running
 ```
-
-#### The Client
-
-Just as the section Manual under How to use, you just have to replace `s2c` by `python3 -m app.main`
 
 ## About
 

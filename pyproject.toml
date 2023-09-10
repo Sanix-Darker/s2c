@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "s2c"
+version = "0.1.0"
+description = "visio-conferencing from your terminal"
+authors = ["sanix-darker <s4nixd@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+opencv-python = "^4.8.0.76"
+PyAudio = "^0.2.13"
+setuptools = "^68.2.0"
+numpy = "^1.25.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.2"
+ruff = "^0.0.287"
+black = "^23.7.0"
+mypy = "^1.5.1"
+pytest-mock = "^3.11.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
