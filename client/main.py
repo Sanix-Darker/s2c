@@ -242,6 +242,7 @@ class Client:
 
         return self.generate_frame(fps_str, gray_image, CHARACTERS, INDICES)
 
+
 def generate_key(prs: object):
     """
     This metho will just generate a secret key for

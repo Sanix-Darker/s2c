@@ -11,9 +11,9 @@ class Server:
 
     def __init__(self, port: int):
         self.ip, self.port = "0.0.0.0", port
-        self.rooms: dict[
-            str, dict
-        ] = {}  # {session_id: {"d": last_seen_ts, client_id: {"c": sock}}}
+        self.rooms: dict[str, dict] = (
+            {}
+        )  # {session_id: {"d": last_seen_ts, client_id: {"c": sock}}}
         self.lock = Lock()
         self._setup_socket()
 
