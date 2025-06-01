@@ -29,8 +29,8 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov
+        pip install uv
+        uv pip install .
 
     # When there will be test (let's hope lazyness don't kill me...)
     # - name: Run tests
