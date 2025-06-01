@@ -60,9 +60,9 @@ To run the server :
 s2c_server -p 1122
 ```
 
-## From sources
+## FROM SOURCES
 
-### How to install
+### HOW TO INSTALL
 
 Install bindings librairies for pyaudio !
 - On linux/Mac : `sudo apt install -y portaudio19-dev` and `sudo apt install -y pyaudio`
@@ -72,17 +72,19 @@ Clone and set the virtualenvironment :
 # We clone the repository
 git clone https://github.com/sanix-darker/s2c
 
-# We Set the virtualenv
-virtualenv -p python3 venv
-source venv/bin/activate
+# Install uv if you haven't
+pip install uv
 
-# We install requirements
-pip install -r requirements
+# Build the package (will use pyproject.toml)
+uv pip install .
+
+# Or for development install
+uv pip install -e .
 ```
 
-### How to launch
+### HOW TO LAUNCH
 
-#### The server
+#### SERVER
 
 The server take only one parameter, the port, where it's going to run !
 ```shell
@@ -95,9 +97,9 @@ optional arguments:
   -p PORT, --port PORT  The port where the server will be running
 ```
 
-#### The Client
+#### CLIENT
 
-Just as the section Manual under How to use, you just have to replace `s2c` by `python3 -m app.main`
+Just as the section Manual under How to use, you just have to replace `s2c` by `python3 -m client.main`
 
 ## About
 

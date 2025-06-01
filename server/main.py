@@ -7,8 +7,6 @@ from threading import Lock
 
 
 class Server:
-    """Lightweight S2C relay without SSH support"""
-
     BUFF_SIZE = 4096
 
     def __init__(self, port: int):
