@@ -1,5 +1,7 @@
 # S2C
 
+![demo](./demo.gif)
+
 A secret video chat "in terminal" using PGP encryptions and AES encryptions.
 No Browser needed !
 
@@ -9,9 +11,8 @@ No Browser needed !
 
 ### Requirements
 
-- Python (3.x is recommended)
-- Pip3
-- PyAudio
+- Python (>3.10 is recommended)
+- poraudio.h (for the audio forwarding, more details later)
 
 ## How to use
 
@@ -28,7 +29,7 @@ pip install s2c
 
 ### Manual
 
-#### Client 
+#### Client
 
 The manual of s2c :
 ```shell

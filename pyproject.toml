@@ -1,9 +1,16 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "s2c"
-version = "0.1.0"
+version = "0.0.6"
 description = "Secure End to End encrypted video chat over terminal."
 readme = "README.md"
-requires-python = ">=3.13"
+authors = [
+    {name = "Sanix-darker", email = "s4nixd@gmail.com"},
+]
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=2.2.6",
     "opencv-python>=4.11.0.86",
@@ -11,8 +18,24 @@ dependencies = [
     "pyaudio>=0.2.14",
     "setuptools>=80.9.0",
 ]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 [dependency-groups]
 dev = [
     "ruff>=0.11.12",
 ]
+
+[project.urls]
+Homepage = "https://github.com/sanix-darker/s2c"
+
+[project.scripts]
+s2c = "s2c.main:main"
+s2c_server = "server.main:main"
+
+[tool.setuptools.packages]
+find = {}

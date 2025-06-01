@@ -1,30 +1,16 @@
-import setuptools
-from s2c.settings import version as VERSION
+from setuptools import setup
 
-
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("requirements.txt") as f:
-    required = f.read().splitlines()
-
-
-setuptools.setup(
+setup(
     name="s2c",
-    version=VERSION,
-    install_requires=required,
-    scripts=["./scripts/s2c", "./scripts/s2c_server"],
-    author="Sanix-darker",
+    version="0.0.5",
+    author="Sanix-Darker",
     author_email="s4nixd@gmail.com",
-    description="A Video + Audio Chat in your terminal !",
+    description="A Video + Audio Chat in your terminal!",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/sanix-darker/s2c",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
-    python_requires=">=3.6",
+    python_requires=">=3.10",
 )
