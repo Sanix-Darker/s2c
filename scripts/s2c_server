@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-if [[ ! $@ ]]; then
-    python3 -m server.main -h
-else
-    python3 -m server.main $@
-fi
-

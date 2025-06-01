@@ -1,205 +1,236 @@
-import json, socket, threading, pyaudio
+import socket
+import threading
+import pyaudio
 import time
 import base64
-from os import (
-        path as os_path,
-        name as os_name,
-        system
-)
-from s2c.settings import *
+import json
+import os
 from cv2 import (
-        resize,
-        flip,
-        cvtColor,
-        COLOR_BGR2GRAY,
-        VideoCapture
+    resize,
+    flip,
+    VideoCapture,
+    cvtColor,
+    COLOR_BGR2GRAY,
 )
-from s2c.utils.camera import ascii_it
-from s2c.utils.helpers import get_trace
+import numpy as np
 
+from bisect import bisect
+
+# To prevent ruff spreading these two arrays
+# fmt: off
+CHARACTERS = [ "M", "B", "N", "W", "R", "g", "#", "Q", "8", "D", "$", "0", "H", "@", "m", "&", "E", "O", "9", "6", "d", "b", "A", "p", "K", "q", "Z", "G", "U", "X", "P", "5", "a", "2", "S", "k", "e", "h", "4", "V", "3", "I", "w", "F", "y", "o", "{", "}", "f", "C", "u", "n", "1", "z", "%", "s", "t", "x", "Y", "J", "[", "T", "]", "j", "7", "L", "i", "l", "v", "c", "?", ")", "(", "/", "r", "<", ">", "*", "=", "|", "+", "!", "_", ";", "^", ":", "~", ",", ".", "-", "`", " ", ]
+GLOBAL_BRIGHTNESSES = np.array( [ 156.1, 157.6, 159.9, 160.6, 164.8, 165.6, 166.3, 167.1, 168.9, 169.9, 171.2, 171.6, 172.1, 172.2, 172.4, 173.5, 173.7, 173.9, 173.9, 174.0, 174.7, 174.7, 174.9, 176.3, 176.3, 176.4, 176.7, 177.4, 179.2, 179.5, 179.6, 180.0, 181.2, 181.4, 182.1, 182.2, 182.3, 184.6, 184.9, 185.7, 186.7, 188.1, 189.1, 189.7, 192.0, 192.3, 194.5, 194.5, 195.1, 195.7, 195.7, 195.8, 196.0, 196.3, 196.7, 196.8, 197.9, 198.6, 198.7, 198.9, 199.2, 199.2, 199.2, 200.0, 200.5, 202.4, 202.4, 203.3, 203.9, 205.9, 208.9, 214.7, 214.8, 215.2, 215.5, 215.8, 215.8, 220.8, 223.1, 223.1, 225.2, 225.6, 229.5, 230.5, 231.7, 238.0, 238.7, 239.0, 246.5, 246.5, 248.3, 255.0, ])
+# fmt: on
+
+INDICES = [0] * 256
+
+FRAMES = 0
+START = time.time()
 
 
 class Client:
-    def __init__(self, session):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.ip = session["ip"]
-        self.port = session["port"]
+    CHUNK = 512
+    RATE = 10_000
+    SIZE = (60, 20)  # for less ascii generated items to broadcast
 
+    def __init__(self, session):
+        self.session = session
         self.session_key = session["session_key"]
         self.session_id = session["session_id"]
         self.client_id = session["client_id"]
 
-        self.size = [60, 20]
         self.faces = {}
+        self.lock = threading.Lock()
 
-        while True:
-            try:
-                self.s.connect((self.ip, self.port))
-                break
-            except:
-                print("[x] Couldn't connect to server {}:{}".format(str(self.ip), str(self.port)))
-                time.sleep(1)
+        self._connect()
+        self._setup_media()
+        self._start_threads()
 
-        # The Cature for cam
+        self._send_frames()
+
+    def _connect(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        while self.sock.connect_ex((self.session["ip"], self.session["port"])) != 0:
+            time.sleep(1)
+
+    def _setup_media(self):
         self.cam = VideoCapture(0)
-        self.cam.set(2, self.size[1])
-        self.cam.set(3, self.size[0])
+        self.cam.set(3, self.SIZE[0])
+        self.cam.set(4, self.SIZE[1])
 
-        chunk_size = 512
-        audio_format = pyaudio.paInt16
-        channels = 1
-        rate = 10000
-
-        # initialise microphone recording
-        self.p = pyaudio.PyAudio()
-        self.playing_stream = self.p.open(
-                format=audio_format,
-                channels=channels,
-                rate=rate,
-                output=True,
-                frames_per_buffer=chunk_size
+        p = pyaudio.PyAudio()
+        self.play_stream = p.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=self.RATE,
+            output=True,
+            frames_per_buffer=self.CHUNK,
         )
-        self.recording_stream = self.p.open(
-                format=audio_format,
-                channels=channels,
-                rate=rate,
-                input=True,
-                frames_per_buffer=chunk_size
+        self.rec_stream = p.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=self.RATE,
+            input=True,
+            frames_per_buffer=self.CHUNK,
         )
 
-        self.start_logs()
-
-        # start threads
-        receive_thread = threading.Thread(target=self.receive_server_data).start()
-        threading.Thread(target=self.send_audio_to_server).start()
-        threading.Thread(target=self.print_faces).start()
-        self.send_frame_to_server()
-
-    def start_logs(self):
+    def _start_threads(self):
         """
-        Just the starting logs
+        We have 3 threads here :
+        - one for the permanant receiving of the whole broadcast's session
+        - one for sending the audio
+        - one for rendering all faces
 
+        (to simulate the parralelism)
         """
-        system('cls' if os_name == 'nt' else 'clear')
+
         print("[-] s2c started...")
         print(f"[>] session_id : {self.session_id}")
         print(f"[<] client_id : {self.client_id}")
         print(f"[:] session_key : {self.session_key}")
-        print("[-] Connected to Server")
+        print("[-] Connected to Server\n")
 
-    def print_faces(self):
-        """
-        Just to print faces from the self.faces
+        threading.Thread(target=self._recv_data, daemon=True).start()
+        threading.Thread(target=self._send_audio, daemon=True).start()
+        threading.Thread(target=self._render_faces, daemon=True).start()
 
-        """
-        while True:
-            system('cls' if os_name == 'nt' else 'clear')
-            print("-" * 30)
-            print(f"[+] s2c v{version} | session_id : {self.session_id}")
-            print("-" * 30)
-
-            to_print = ""
-            to_print2 = ""
-            for i in range(20):
-                try:
-                    for index, f in enumerate(self.faces):
-                        uid = "client_id: " + f
-                        if index < 3:
-                            if f not in to_print:
-                                to_print += uid + " "*(len(self.faces[f].split("\n")[i]) - len(uid)) + " | "
-                            else:
-                                to_print += self.faces[f].split("\n")[i] + " | "
-                        else:
-                            if f not in to_prin2t:
-                                to_print2 += "client_id: " + f
-                            else:
-                                to_print2 += self.faces[f].split("\n")[i] + " | "
-                    to_print += "\n"
-                    if len(self.faces) > 3:
-                        to_print2 += "\n"
-
-                except Exception as es:
-                    pass
-            print(to_print)
-            print("\n" + "-"*30)
-            print(to_print2)
-
-    def receive_server_data(self):
-        """
-        This method is responsible on receiving the video and the audio
-        """
-        # print("[+] receiver's Thread started...")
-
-        while True:
-            received_msg = self.s.recv(3072)
-            try:
-                received_msg = json.loads(received_msg.decode("utf-8"))
-                if "a" in received_msg:
-                    audio_chunk = base64.b64decode(received_msg["a"])
-                    self.playing_stream.write(audio_chunk)
-
-                if "v" in received_msg:
-                    self.faces[received_msg["i"]] = received_msg["v"]
-
-            except Exception as es:
-                get_trace()
-
-    def send_audio_to_server(self):
-        """
-        This method will send audio in a seperate thread
-
-        """
-        # print("[+] Audio sender's Thread started...")
-
+    def _recv_data(self):
         while True:
             try:
-                # We get the audio stream (1024 in size)
-                audio_data = self.recording_stream.read(512)
+                raw = self.sock.recv(4096)
+                if not raw:
+                    continue
 
-                # We send the audio tape
-                audio_tape = json.dumps({
-                    "i": self.client_id,
-                    "s": self.session_id,
-                    "a": base64.b64encode(audio_data).decode("utf-8")
-                })
-
-                try:
-                    self.s.sendall(bytes(audio_tape, encoding="utf-8"))
-                except ConnectionResetError as es:
-                    get_trace()
-            except KeyboardInterrupt as es:
-                self.cam.release()
+                msg = json.loads(raw.decode())
+                if "a" in msg:
+                    self.play_stream.write(base64.b64decode(msg["a"]))
+                if "v" in msg:
+                    with self.lock:
+                        self.faces[msg["i"]] = msg["v"]
+            except Exception as excp:
+                print(excp)
                 break
 
-    def send_frame_to_server(self):
-        """
-        This method will send the frames in a while Loop
-
-        """
+    # for the audio
+    def _send_audio(self):
         while True:
             try:
-                _, img = self.cam.read()
-                if _:
-                    # We enerate our ascii frame
-                    ascii_frame = ascii_it(
-                                self.client_id,
-                                self.session_id,
-                                flip(resize(img, (self.size[0], self.size[1])),1))
-
-                    # We send the frame
-                    frame = json.dumps({
+                chunk = self.rec_stream.read(self.CHUNK, exception_on_overflow=False)
+                packet = json.dumps(
+                    {
                         "i": self.client_id,
                         "s": self.session_id,
-                        "v": ascii_frame
-                    })
-                    # We add our self's fce in the faces object
-                    self.faces[self.client_id] = ascii_frame
-                    try:
-                        # We send through sockets
-                        self.s.sendall(bytes(frame, encoding="utf-8"))
-                    except ConnectionResetError as es:
-                        get_trace()
-            except KeyboardInterrupt as es:
-                self.cam.release()
+                        "a": base64.b64encode(chunk).decode(),
+                    }
+                )
+                self.sock.sendall(packet.encode())
+            except Exception as excp:
+                print(excp)
                 break
 
+    # for the video
+    def _send_frames(self):
+        while True:
+            try:
+                ok, frame = self.cam.read()
+                if not ok:
+                    continue
+
+                ascii_frame = self.ascii_it(flip(resize(frame, self.SIZE), 1))
+
+                with self.lock:
+                    self.faces[self.client_id] = ascii_frame
+
+                packet = json.dumps(
+                    {"i": self.client_id, "s": self.session_id, "v": ascii_frame}
+                )
+                self.sock.sendall(packet.encode())
+            except KeyboardInterrupt:
+                self.cam.release()
+                break
+            except Exception as excp:
+                print(excp)
+
+    def _render_faces(self):
+        clear = "cls" if os.name == "nt" else "clear"
+        while True:
+            os.system(clear)
+            print("-" * 30)
+            print(f"[+] s2c | session_id : {self.session_id}")
+            print("-" * 30)
+
+            with self.lock:
+                keys = list(self.faces)
+                left, right = keys[:3], keys[3:]
+                lines = {k: self.faces[k].split("\n")[: self.SIZE[1]] for k in keys}
+                uid = {k: f"client_id: {k}" for k in keys}
+                width = {
+                    k: max(len(uid[k]), *(len(li) for li in lines[k])) for k in keys
+                }
+
+            def block(cols):
+                rows = []
+                for i in range(self.SIZE[1]):
+                    parts = []
+                    for k in cols:
+                        cell = (
+                            uid[k]
+                            if i == 0
+                            else (lines[k][i] if i < len(lines[k]) else "")
+                        )
+                        parts.append(cell.ljust(width[k]))
+                    if parts:
+                        rows.append(" | ".join(parts))
+                return "\n".join(rows)
+
+            print(block(left))
+            if right:
+                print("\n" + "-" * 30)
+                print(block(right))
+
+            time.sleep(0.05)
+
+    def generate_frame(self, fps_str, gray_image, characters, indices):
+        string = ""
+        for row in gray_image:
+            for c in row:
+                string += characters[indices[c]]
+            string += "\n"
+        string = string[: -len(fps_str) - 1] + fps_str
+
+        return string
+
+    def get_fps(self, frames):
+        fps = int(frames // (time.time() - START))
+
+        return "  {} FPS".format(fps)
+
+    def ascii_it(self, image):
+        """
+        From an image to an ASCII representation with brightnesses
+
+        """
+        global FRAMES
+
+        # Convert to grayscale
+        gray_image = 255 - cvtColor(image, COLOR_BGR2GRAY)
+
+        # Normalize so that the whole range of characters is used
+        upper_limit = gray_image.max() * (
+            (len(CHARACTERS) + 1) / float(len(CHARACTERS))
+        )
+        lower_limit = gray_image.min()
+
+        bright_div = (GLOBAL_BRIGHTNESSES - GLOBAL_BRIGHTNESSES.min()) / (
+            GLOBAL_BRIGHTNESSES.max() - GLOBAL_BRIGHTNESSES.min()
+        )
+        brightnesses = bright_div * (upper_limit - lower_limit) + lower_limit
+
+        FRAMES += 1
+        fps_str = self.get_fps(FRAMES)
+
+        for c in range(gray_image.min(), gray_image.max() + 1):
+            INDICES[c] = bisect(brightnesses, c)
+
+        return self.generate_frame(fps_str, gray_image, CHARACTERS, INDICES)

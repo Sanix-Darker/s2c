@@ -1,127 +1,104 @@
-# The server part
-# The place where i will forward the whole traffic
-# By d4rk3r
-import socket, argparse, threading, json, time
-from s2c.utils.helpers import get_trace
-
+import socket
+import argparse
+import threading
+import json
+import time
+from threading import Lock
 
 
 class Server:
-    def __init__(self, port):
-        self.rooms = {}
-        self.ip = '0.0.0.0'
-        self.port = port
+    """Lightweight S2C relay without SSH support"""
 
+    BUFF_SIZE = 4096
+
+    def __init__(self, port: int):
+        self.ip, self.port = "0.0.0.0", port
+        self.rooms: dict[
+            str, dict
+        ] = {}  # {session_id: {"d": last_seen_ts, client_id: {"c": sock}}}
+        self.lock = Lock()
+        self._setup_socket()
+
+    def _setup_socket(self) -> None:
+        """Bind & listen, retrying until the port becomes free."""
         while True:
             try:
-                self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s.bind((self.ip, self.port))
-
-                self.s.listen()
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                self.sock.bind((self.ip, self.port))
+                self.sock.listen()
                 break
-            except:
-                print("[x] Couldn't bind to that port {}".format(str(self.port)))
+            except OSError as e:
+                print(f"[x] Couldn't bind to port {self.port}: {e}; retrying…")
                 time.sleep(1)
 
-        self.accept_connections()
+    def _save_room(self, conn: socket.socket, pkt: dict) -> None:
+        """Register (session_id, client_id) pair and keep max 5 peers per room."""
+        sid, cid = pkt["s"], pkt["i"]
+        with self.lock:
+            room = self.rooms.setdefault(sid, {"d": time.time()})
+            if cid not in room and len(room) < 6:  # 5 peers + "d"
+                room[cid] = {"c": conn}
 
-    def accept_connections(self):
+    def _broadcast(self, sender: socket.socket, pkt: dict) -> None:
+        """Forward pkt to every peer in the room except sender."""
+        self._save_room(sender, pkt)
 
-        print("[-] S2C server started...")
-        print('[-] Running on IP: ' + self.ip)
-        print('[-] Running on port: ' + str(self.port))
+        sid = pkt["s"]
+        with self.lock:
+            room = self.rooms[sid]
+            room["d"] = time.time()
+            payload = json.dumps(pkt).encode()
 
-        while True:
-            c, addr = self.s.accept()
-            # Here we're going to handle clients with threads
-            threading.Thread(target=self.handle_client,args=(c,addr,)).start()
-            # A seperate thread to delete all old session tofree the ram
-            # threading.Thread(target=self.erase_old_sessions).start()
+            for meta in room.values():
+                if isinstance(meta, socket.socket):
+                    conn = meta
+                elif isinstance(meta, dict):
+                    conn = meta.get("c", None)
+                else:
+                    continue
 
-    def save_room_set(self, sock, json_data):
-        """
-        This method will create a session group and add the current id
-        in it if everything is not set for that client
+                if not conn or conn is sender:
+                    continue
 
-        """
-        # if the session doesn't exist we create it
-        if json_data["s"] not in self.rooms:
-            self.rooms[json_data["s"]] = {"d": time.time()}
-
-        # We check if a client_id already exist with that id
-        # if self.rooms[json_data["s"]][json_data["i"]]
-
-        # The limit of sessions to get a fluidity
-        if len(self.rooms[json_data["s"]]) < 5:
-            # if the current id not in the target session, we add it
-            if json_data["i"] not in self.rooms[json_data["s"]]:
-                self.rooms[json_data["s"]][json_data["i"]] = {"c": sock}
-
-    def erase_old_sessions(self):
-        """
-        This method will loop over all current session and delete old one from 360
-        just to free the RAM
-
-        """
-
-        for r in self.rooms:
-            if time.time() - self.rooms[r]["d"] >= 60:
-                print(f"[-] Session {r} erased !")
-                del self.rooms[r]
-
-        print(f"sessions : [{len(self.rooms)}]")
-        time.sleep(360)
-
-    def broadcast(self, sock, json_data):
-        """
-        In this method we're going to broadcast the whole thing
-        """
-        self.save_room_set(sock, json_data)
-
-        # We set a new time for the session cuz it still active
-        self.rooms[json_data["s"]]["d"] = time.time()
-        # We loop over all clients in the session
-        # To send them the flux
-        for elt in self.rooms[json_data["s"]]:
-            try:
-                client = self.rooms[json_data["s"]][elt]["c"]
-                if client != self.s and client != sock:
-                    try:
-                        client.send(bytes(json.dumps(json_data), encoding="utf-8"))
-                    except Exception as es:
-                        get_trace()
-            except Exception as es:
-                pass
-
-    def handle_client(self, c, addr):
-        """
-        To handle each socket client
-        """
-        while True:
-            try:
                 try:
-                    json_data = json.loads(c.recv(3072).decode("utf-8"))
+                    conn.sendall(payload)
+                except Exception as excp:
+                    print(excp)
 
-                    # i for the id, s for the session,
-                    # 'v' for the video string and 'a' for the audio chunk
-                    if all(k in json_data.keys() for k in ["i", "s"]):
-                        self.broadcast(c, json_data)
-                    else:
-                        print("[x] Incomplete sequence !")
-                except (json.decoder.JSONDecodeError, BrokenPipeError) as e:
-                   pass
-            except socket.error:
-                c.close()
+    def _handle_client(self, conn: socket.socket) -> None:
+        try:
+            while True:
+                raw = conn.recv(self.BUFF_SIZE)
+                if not raw:
+                    break
+                try:
+                    pkt = json.loads(raw.decode())
+                    if "i" in pkt and "s" in pkt:
+                        self._broadcast(conn, pkt)
+                except json.JSONDecodeError:
+                    # should probably log here... but boff...
+                    continue
+        except Exception as excp:
+            print(excp)
+        finally:
+            conn.close()
+
+    # entrypoint
+    def serve_forever(self) -> None:
+        print("[-] S2C server started...")
+        print(f"[-] Running on {self.ip}:{self.port}")
+
+        while True:
+            conn, _ = self.sock.accept()
+            threading.Thread(
+                target=self._handle_client, args=(conn,), daemon=True
+            ).start()
 
 
 if __name__ == "__main__":
-    # Initialize the arguments
-    prs = argparse.ArgumentParser()
-    prs.add_argument('-p', '--port',
-            help='The port where the server will be running',
-            type=int, default=1122)
-    prs = prs.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--port", type=int, default=1122, help="Listening port")
+    args = parser.parse_args()
 
-    # We start our server
-    server = Server(prs.port)
-
+    Server(args.port).serve_forever()
