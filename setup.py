@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="s2c",
-    version="0.0.5",
+    version="0.0.7",
     author="Sanix-Darker",
     author_email="s4nixd@gmail.com",
     description="A Video + Audio Chat in your terminal!",
