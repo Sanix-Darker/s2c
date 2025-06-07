@@ -28,8 +28,8 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install uv
+        python -m pip install --upgrade pip uv
+        uv venv
         uv pip install .
 
     # When there will be test (let's hope lazyness don't kill me...)
