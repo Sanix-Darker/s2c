@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "s2c"
-version = "0.0.7"
+version = "0.1.0"
 description = "Secure End to End encrypted video chat over terminal."
 readme = "README.md"
 authors = [
@@ -39,7 +39,7 @@ dev = [
 Homepage = "https://github.com/sanix-darker/s2c"
 
 [project.scripts]
-s2c = "s2c.main:main"
+s2c = "s2c.__main__:main"
 s2c_server = "server.main:main"
 
 [tool.setuptools.packages]

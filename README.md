@@ -2,7 +2,7 @@
 
 ![demo](./demo.gif)
 
-A secret video chat "in terminal" using PGP encryptions and AES encryptions.
+A secret video chat "in terminal" (encryption support is planned for a future release).
 No Browser needed !
 
 ## Features

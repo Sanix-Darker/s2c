@@ -33,10 +33,11 @@ jobs:
         uv pip install .
 
     # When there will be test (let's hope lazyness don't kill me...)
-    # - name: Run tests
-    #   run: |
-    #     python -m pytest tests/ -v --cov=./ --cov-report=xml
+    - name: Check changelog drift
+      run: |
+        python scripts/changelog_drift.py --quiet
+    - name: Run tests
+      run: |
+        python -m pip install --upgrade pytest pytest-mock
+        python -m pytest tests -q --no-header
 
-    # - name: Upload coverage to Codecov
-    #   uses: codecov/codecov-action@v3
-    #   if: success()

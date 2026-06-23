@@ -1,0 +1,70 @@
+{
+  "cpu_pct_note": "process_time is process-wide; scenarios that spawn worker threads (e.g. server-fanout with 1 accept + N handlers) include their CPU in `cpu_pct_mean`, so the metric may legitimately exceed 100%.",
+  "git_describe": "8133ae0-dirty",
+  "iterations_per_trial": 500,
+  "label": "before-phase2",
+  "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.29",
+  "python": "3.8.10",
+  "scenario_results": [
+    {
+      "cpu_pct_mean": 100.09,
+      "frames_per_sec_mean": 323519.9,
+      "iterations_per_trial": 500,
+      "process_seconds_mean": 0.001547,
+      "scenario": "framing",
+      "status": "ok",
+      "trials": 5,
+      "wall_seconds_mean": 0.001546,
+      "wall_seconds_stdev": 9.6e-05
+    },
+    {
+      "iterations_per_trial": 500,
+      "reason": "opencv-python not installed; install with: pip install opencv-python",
+      "scenario": "ascii",
+      "status": "skipped",
+      "trials": 0
+    },
+    {
+      "bytes_per_packet": 1406,
+      "cpu_pct_mean": 99.89,
+      "iterations_per_trial": 500,
+      "packets_per_sec_mean": 138362.0,
+      "process_seconds_mean": 0.00361,
+      "scenario": "audio-encode",
+      "status": "ok",
+      "trials": 5,
+      "wall_seconds_mean": 0.003614,
+      "wall_seconds_stdev": 4.6e-05
+    },
+    {
+      "broadcasts_per_sec_mean": 43614.8,
+      "iterations_per_trial": 500,
+      "peers": 3,
+      "received_loss_trials": 0,
+      "recv_cpu_pct_mean": 115.61,
+      "recv_process_seconds_mean": 0.028997,
+      "recv_wall_seconds_mean": 0.025083,
+      "recv_wall_seconds_stdev": 0.003467,
+      "scenario": "server-fanout",
+      "send_cpu_pct_mean": 125.49,
+      "send_process_seconds_mean": 0.014386,
+      "send_wall_seconds_mean": 0.011464,
+      "send_wall_seconds_stdev": 0.009298,
+      "status": "ok",
+      "trials": 5
+    },
+    {
+      "cpu_pct_mean": 69.28,
+      "frames_per_sec_mean": 30163.5,
+      "iterations_per_trial": 500,
+      "process_seconds_mean": 0.011485,
+      "scenario": "client-loop",
+      "status": "ok",
+      "trials": 5,
+      "wall_seconds_mean": 0.016576,
+      "wall_seconds_stdev": 0.005222
+    }
+  ],
+  "seed": 42,
+  "trials": 5
+}
